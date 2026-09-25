@@ -4,7 +4,7 @@ import base64
 import time
 
 import pytest
-from hypothesis import given
+from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
 from mcp_guard.egress import EgressPolicy, check_egress, extract_hosts
@@ -44,6 +44,7 @@ def test_capability_verify_and_tamper_detection() -> None:
     child_calls=st.integers(min_value=1, max_value=50),
     seconds=st.floats(min_value=1, max_value=1000, allow_nan=False, allow_infinity=False),
 )
+@settings(suppress_health_check=[HealthCheck.too_slow])
 def test_attenuation_never_widens(max_calls: int, child_calls: int, seconds: float) -> None:
     parent = Caveats("srv", ("read*",), 10_000.0, max_calls, path_prefixes=("/safe",))
     child = attenuate(

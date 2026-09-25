@@ -87,16 +87,9 @@ class AsyncStdioProxy:
 
 async def relay_stdio(command: Sequence[str], pipeline: GuardPipeline) -> int:
     async with AsyncStdioProxy(command, pipeline) as proxy:
-        reader = asyncio.StreamReader()
-        protocol = asyncio.StreamReaderProtocol(reader)
-        loop = asyncio.get_running_loop()
-        await loop.connect_read_pipe(lambda: protocol, __import__("sys").stdin)
-        writer_transport, writer_protocol = await loop.connect_write_pipe(
-            asyncio.streams.FlowControlMixin, __import__("sys").stdout
-        )
-        writer = asyncio.StreamWriter(writer_transport, writer_protocol, None, loop)
+        sys = __import__("sys")
         while True:
-            line = await reader.readline()
+            line = await asyncio.to_thread(sys.stdin.buffer.readline)
             if not line:
                 return 0
             try:
@@ -104,8 +97,8 @@ async def relay_stdio(command: Sequence[str], pipeline: GuardPipeline) -> int:
                 response = await proxy.forward(frame)
             except Exception as exc:
                 response = _error(None, -32700, exc.__class__.__name__)
-            writer.write(serialize_frame(response))
-            await writer.drain()
+            sys.stdout.buffer.write(serialize_frame(response))
+            sys.stdout.buffer.flush()
 
 
 def _error(request_id: object, code: int, message: str) -> dict[str, Any]:
