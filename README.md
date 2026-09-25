@@ -45,11 +45,11 @@ flowchart LR
 <!-- RESULTS:START -->
 | Metric | Value | 95% CI |
 |---|---:|---:|
-| stdio tools/call added p95 | 0.013 ms | [0.009, 0.017] |
+| stdio tools/call added p95 | 0.010 ms | [0.008, 0.015] |
 | HTTP tools/call added p95 | 0.004 ms | [0.004, 0.005] |
 | MCP corpus detection | 1.000 | [0.983, 1.000] |
 | MCP corpus false positives | 0.000 | [0.000, 0.017] |
-| token verify mean | 0.0367 ms | [0.0329, 0.0405] |
+| token verify mean | 0.0311 ms | [0.0273, 0.0349] |
 <!-- RESULTS:END -->
 
 ## Development

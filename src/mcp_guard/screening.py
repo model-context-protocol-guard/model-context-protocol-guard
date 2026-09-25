@@ -75,7 +75,7 @@ def screen_description(
     if _contains_any(description, ZERO_WIDTH) or _contains_any(description, BIDI):
         findings.append(Finding("description", "description contains zero-width or bidi controls"))
     if CONTROL_TOKEN_RE.search(description):
-        findings.append(Finding("description", "description contains chat-template control token"))
+        findings.append(Finding("description", "description contains control token"))
     if ASSISTANT_ADDRESS_RE.search(description):
         findings.append(
             Finding("description", "description appears addressed to the assistant/model")
@@ -112,7 +112,7 @@ def screen_result(result: Any, *, policy: ScreeningPolicy | None = None) -> tupl
     findings: list[Finding] = []
     for text in _walk_strings(result):
         if CONTROL_TOKEN_RE.search(text):
-            findings.append(Finding("result", "result contains chat-template control token"))
+            findings.append(Finding("result", "result contains control token"))
         if SECRET_RE.search(text):
             findings.append(Finding("result", "result contains secret-shaped string"))
             if p.deny_on_secret:

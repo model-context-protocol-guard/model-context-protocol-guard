@@ -55,7 +55,7 @@ class CapabilityIssuer:
             raise ValueError("invalid token encoding") from exc
         expected = hmac.new(self.key, payload, sha256).digest()
         if not hmac.compare_digest(expected, sig):
-            raise ValueError("capability signature verification failed")
+            raise ValueError("capability signature check failed")
         data = json.loads(payload)
         return Caveats(
             server=str(data["server"]),

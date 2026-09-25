@@ -4,11 +4,11 @@ Results are generated from bench artifacts, not hand-entered.
 
 | Hypothesis | Threshold | Result | Verdict |
 |---|---|---:|---|
-| H1 stdio added p95 per `tools/call` | <= 5 ms | 0.013 ms | PASS |
+| H1 stdio added p95 per `tools/call` | <= 5 ms | 0.010 ms | PASS |
 | H2 description corpus detection / FPR Wilson bounds | detection low >= 0.95 and FPR high <= 0.02 | 0.983 / 0.017 | PASS |
 | H3 definition changes detected | 100% | 1.000 | PASS |
-| H4 token verify mean | <= 0.5 ms | 0.0367 ms | PASS |
+| H4 token verify mean | <= 0.5 ms | 0.0311 ms | PASS |
 
-AZT-Bench test: `{"block_rate": {"count": 499, "high": 0.9996468636054409, "low": 0.9887592932948533, "n": 500, "point": 0.998}, "false_positive_rate": {"count": 0, "high": 0.007624340461552241, "low": 0.0, "n": 500, "point": 0.0}, "leak_count": 0, "leak_rate": {"count": 0, "high": 0.003826758485555124, "low": 0.0, "n": 1000, "point": 0.0}, "wilson_n_is_distinct_traces": true}`.
+AZT-Bench test: `{"attack_policy_slices": {"in_policy": {"attack_traces": 250, "block_rate": {"count": 229, "high": 0.9444039612333553, "low": 0.8750051335864348, "n": 250, "point": 0.916}, "leak_count": 1, "leak_rate": {"count": 1, "high": 0.02230578556541592, "low": 0.0007064475340650972, "n": 250, "point": 0.004}}, "out_of_policy": {"attack_traces": 250, "block_rate": {"count": 249, "high": 0.9992935524659348, "low": 0.9776942144345839, "n": 250, "point": 0.996}, "leak_count": 0, "leak_rate": {"count": 0, "high": 0.015133299495444574, "low": 0.0, "n": 250, "point": 0.0}}}, "block_rate": {"count": 478, "high": 0.9707660443713928, "low": 0.9342805571276716, "n": 500, "point": 0.956}, "false_positive_rate": {"count": 14, "high": 0.04644640267494888, "low": 0.016750974720756446, "n": 500, "point": 0.028}, "leak_count": 1, "leak_rate": {"count": 1, "high": 0.0056425585979579355, "low": 0.00017654637062607817, "n": 1000, "point": 0.001}, "wilson_n_is_distinct_traces": true}`.
 
-TLC: `specs/tlc-output.txt` reports 254,178 states generated, 10,368 distinct states, depth 4, no violations.
+TLC: see `specs/tlc-output.txt` from the verified run.
