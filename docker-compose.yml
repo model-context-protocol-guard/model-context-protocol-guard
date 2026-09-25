@@ -1,0 +1,5 @@
+services:
+  check:
+    image: python:3.12-slim
+    working_dir: /src
+    command: bash scripts/check.sh
