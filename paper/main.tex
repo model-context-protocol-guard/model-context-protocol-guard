@@ -1,0 +1,22 @@
+\documentclass{article}
+\usepackage{booktabs}
+\title{MCP-Guard: Deny-by-Default Mediation for Model Context Protocol Tools}
+\author{Parag Sawant}
+\begin{document}
+\maketitle
+\begin{abstract}
+MCP-Guard is a transparent proxy that pins MCP tool definitions, validates arguments, constrains egress, and screens untrusted tool output.
+\end{abstract}
+\section{Introduction}
+Tool-using agents rely on MCP servers whose descriptions and outputs are untrusted input.
+\section{Threat Model}
+We address tool poisoning, parser confusion, data exfiltration, and control-token injection.
+\section{Design}
+Both stdio and Streamable HTTP transports share one deny-by-default pipeline.
+\section{Evaluation}
+\input{tables/results.tex}
+\section{Limitations}
+The prototype uses local JSON policy files and HMAC tokens; centralized approval workflows are future work.
+\section{Artifact Appendix}
+All tests, TLC specs, and benchmark artifacts are included in the repository.
+\end{document}
