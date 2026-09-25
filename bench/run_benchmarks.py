@@ -65,6 +65,10 @@ def summarize_latencies(values: list[float]) -> dict[str, Any]:
     }
 
 
+def fmt_ci(metric: dict[str, Any]) -> str:
+    return f"[{metric['low']:.3f}, {metric['high']:.3f}]"
+
+
 def corpus_metrics(corpus: Path) -> dict[str, Any]:
     attacks = benign = detected = fps = 0
     with corpus.open(encoding="utf-8") as fh:
@@ -116,6 +120,10 @@ def update_docs(summary: dict[str, Any]) -> None:
     results = summary["latency"]
     corpus = summary["mcp_corpus"]
     azt = summary["azt_bench"]
+    azt_metrics_map = azt.get("metrics", {})
+    slices = azt_metrics_map.get("attack_policy_slices", {})
+    in_policy = slices.get("in_policy", {})
+    out_policy = slices.get("out_of_policy", {})
     table = (
         "| Metric | Value | 95% CI |\n|---|---:|---:|\n"
         f"| stdio tools/call added p95 | {results['stdio_call_added_ms']['p95_ms']:.3f} ms | "
@@ -129,6 +137,29 @@ def update_docs(summary: dict[str, Any]) -> None:
         f"| token verify mean | {summary['token_verify_ms']['mean_ci_ms']['point']:.4f} ms | "
         f"[{summary['token_verify_ms']['mean_ci_ms']['low']:.4f}, {summary['token_verify_ms']['mean_ci_ms']['high']:.4f}] |\n"
     )
+    if "block_rate" in azt_metrics_map:
+        table += (
+            f"| AZT-Bench test block rate | {azt_metrics_map['block_rate']['point']:.3f} | "
+            f"{fmt_ci(azt_metrics_map['block_rate'])} |\n"
+            f"| AZT-Bench test false positives | {azt_metrics_map['false_positive_rate']['point']:.3f} | "
+            f"{fmt_ci(azt_metrics_map['false_positive_rate'])} |\n"
+            f"| AZT-Bench test leak rate | {azt_metrics_map['leak_rate']['point']:.3f} | "
+            f"{fmt_ci(azt_metrics_map['leak_rate'])} |\n"
+        )
+    if in_policy:
+        table += (
+            f"| AZT-Bench in-policy block rate | {in_policy['block_rate']['point']:.3f} | "
+            f"{fmt_ci(in_policy['block_rate'])} |\n"
+            f"| AZT-Bench in-policy leak rate | {in_policy['leak_rate']['point']:.3f} | "
+            f"{fmt_ci(in_policy['leak_rate'])} |\n"
+        )
+    if out_policy:
+        table += (
+            f"| AZT-Bench out-of-policy block rate | {out_policy['block_rate']['point']:.3f} | "
+            f"{fmt_ci(out_policy['block_rate'])} |\n"
+            f"| AZT-Bench out-of-policy leak rate | {out_policy['leak_rate']['point']:.3f} | "
+            f"{fmt_ci(out_policy['leak_rate'])} |\n"
+        )
     readme = Path("README.md").read_text(encoding="utf-8")
     start = "<!-- RESULTS:START -->"
     end = "<!-- RESULTS:END -->"
@@ -165,6 +196,10 @@ TLC: see `specs/tlc-output.txt` from the verified run.
         "\\begin{tabular}{lrr}\nMetric & Point & CI \\\\ \n"
         f"Stdio call p95 added & {results['stdio_call_added_ms']['p95_ms']:.3f} ms & [{results['stdio_call_added_ms']['p95_ci_ms']['low']:.3f},{results['stdio_call_added_ms']['p95_ci_ms']['high']:.3f}] \\\\ \n"
         f"Detection & {corpus['detection']['point']:.3f} & [{corpus['detection']['low']:.3f},{corpus['detection']['high']:.3f}] \\\\ \n"
+        f"AZT overall block & {azt_metrics_map['block_rate']['point']:.3f} & {fmt_ci(azt_metrics_map['block_rate'])} \\\\ \n"
+        f"AZT overall FPR & {azt_metrics_map['false_positive_rate']['point']:.3f} & {fmt_ci(azt_metrics_map['false_positive_rate'])} \\\\ \n"
+        f"AZT in-policy block & {in_policy['block_rate']['point']:.3f} & {fmt_ci(in_policy['block_rate'])} \\\\ \n"
+        f"AZT out-of-policy block & {out_policy['block_rate']['point']:.3f} & {fmt_ci(out_policy['block_rate'])} \\\\ \n"
         "\\end{tabular}\n",
         encoding="utf-8",
     )

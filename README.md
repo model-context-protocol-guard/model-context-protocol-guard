@@ -45,11 +45,18 @@ flowchart LR
 <!-- RESULTS:START -->
 | Metric | Value | 95% CI |
 |---|---:|---:|
-| stdio tools/call added p95 | 0.010 ms | [0.008, 0.015] |
-| HTTP tools/call added p95 | 0.004 ms | [0.004, 0.005] |
+| stdio tools/call added p95 | 0.014 ms | [0.012, 0.017] |
+| HTTP tools/call added p95 | 0.005 ms | [0.005, 0.006] |
 | MCP corpus detection | 1.000 | [0.983, 1.000] |
 | MCP corpus false positives | 0.000 | [0.000, 0.017] |
-| token verify mean | 0.0311 ms | [0.0273, 0.0349] |
+| token verify mean | 0.0537 ms | [0.0429, 0.0645] |
+| AZT-Bench test block rate | 0.956 | [0.934, 0.971] |
+| AZT-Bench test false positives | 0.028 | [0.017, 0.046] |
+| AZT-Bench test leak rate | 0.001 | [0.000, 0.006] |
+| AZT-Bench in-policy block rate | 0.916 | [0.875, 0.944] |
+| AZT-Bench in-policy leak rate | 0.004 | [0.001, 0.022] |
+| AZT-Bench out-of-policy block rate | 0.996 | [0.978, 0.999] |
+| AZT-Bench out-of-policy leak rate | 0.000 | [0.000, 0.015] |
 <!-- RESULTS:END -->
 
 ## Development

@@ -1,13 +1,13 @@
 TLC2 Version 2026.09.25.163503 (rev: 8f4bc8b)
-Running breadth-first search Model-Checking with fp 127 and seed -798366702422543307 with 12 workers on 12 cores with 14448MB heap and 64MB offheap memory [pid: 26460] (Windows 11 10.0 amd64, Eclipse Adoptium 21.0.12 64bit, MSBDiskFPSet, DiskStateQueue).
+Running breadth-first search Model-Checking with fp 129 and seed -6976137541492349586 with 12 workers on 12 cores with 14448MB heap and 64MB offheap memory [pid: 50000] (Windows 11 10.0 amd64, Eclipse Adoptium 21.0.12 64bit, MSBDiskFPSet, DiskStateQueue).
 Parsing file C:\Parag\github\ztap\mcp-guard\specs\PinnedTools.tla
-Parsing file C:\Users\pasawant\AppData\Local\Temp\tlc-11532015725881983485\Naturals.tla (jar:file:/C:/Parag/github/ztap/_tools/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
-Parsing file C:\Users\pasawant\AppData\Local\Temp\tlc-11532015725881983485\TLC.tla (jar:file:/C:/Parag/github/ztap/_tools/tla2tools.jar!/tla2sany/StandardModules/TLC.tla)
-Parsing file C:\Users\pasawant\AppData\Local\Temp\tlc-11532015725881983485\_TLCTrace.tla (jar:file:/C:/Parag/github/ztap/_tools/tla2tools.jar!/tla2sany/StandardModules/_TLCTrace.tla)
-Parsing file C:\Users\pasawant\AppData\Local\Temp\tlc-11532015725881983485\Sequences.tla (jar:file:/C:/Parag/github/ztap/_tools/tla2tools.jar!/tla2sany/StandardModules/Sequences.tla)
-Parsing file C:\Users\pasawant\AppData\Local\Temp\tlc-11532015725881983485\FiniteSets.tla (jar:file:/C:/Parag/github/ztap/_tools/tla2tools.jar!/tla2sany/StandardModules/FiniteSets.tla)
-Parsing file C:\Users\pasawant\AppData\Local\Temp\tlc-11532015725881983485\TLCExt.tla (jar:file:/C:/Parag/github/ztap/_tools/tla2tools.jar!/tla2sany/StandardModules/TLCExt.tla)
-Parsing file C:\Users\pasawant\AppData\Local\Temp\tlc-11532015725881983485\Integers.tla (jar:file:/C:/Parag/github/ztap/_tools/tla2tools.jar!/tla2sany/StandardModules/Integers.tla)
+Parsing file C:\Users\pasawant\AppData\Local\Temp\tlc-15076580116222415418\Naturals.tla (jar:file:/C:/Parag/github/ztap/_tools/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+Parsing file C:\Users\pasawant\AppData\Local\Temp\tlc-15076580116222415418\TLC.tla (jar:file:/C:/Parag/github/ztap/_tools/tla2tools.jar!/tla2sany/StandardModules/TLC.tla)
+Parsing file C:\Users\pasawant\AppData\Local\Temp\tlc-15076580116222415418\_TLCTrace.tla (jar:file:/C:/Parag/github/ztap/_tools/tla2tools.jar!/tla2sany/StandardModules/_TLCTrace.tla)
+Parsing file C:\Users\pasawant\AppData\Local\Temp\tlc-15076580116222415418\Sequences.tla (jar:file:/C:/Parag/github/ztap/_tools/tla2tools.jar!/tla2sany/StandardModules/Sequences.tla)
+Parsing file C:\Users\pasawant\AppData\Local\Temp\tlc-15076580116222415418\FiniteSets.tla (jar:file:/C:/Parag/github/ztap/_tools/tla2tools.jar!/tla2sany/StandardModules/FiniteSets.tla)
+Parsing file C:\Users\pasawant\AppData\Local\Temp\tlc-15076580116222415418\TLCExt.tla (jar:file:/C:/Parag/github/ztap/_tools/tla2tools.jar!/tla2sany/StandardModules/TLCExt.tla)
+Parsing file C:\Users\pasawant\AppData\Local\Temp\tlc-15076580116222415418\Integers.tla (jar:file:/C:/Parag/github/ztap/_tools/tla2tools.jar!/tla2sany/StandardModules/Integers.tla)
 Semantic processing of module Naturals
 Semantic processing of module Sequences
 Semantic processing of module FiniteSets
@@ -19,7 +19,7 @@ Semantic processing of module PinnedTools
 Linting of module TLCExt
 Linting of module _TLCTrace
 Linting of module PinnedTools
-Starting... (2026-09-25 14:12:05)
+Starting... (2026-09-25 14:23:26)
 Computing initial states...
 Computed 2 initial states...
 Computed 4 initial states...
@@ -28,13 +28,13 @@ Computed 16 initial states...
 Computed 32 initial states...
 Computed 64 initial states...
 Computed 128 initial states...
-Finished computing initial states: 162 distinct states generated at 2026-09-25 14:12:06.
+Finished computing initial states: 162 distinct states generated at 2026-09-25 14:23:27.
 Model checking completed. No error has been found.
   Estimates of the probability that TLC did not check all reachable states
   because two distinct states had the same fingerprint:
   calculated (optimistic):  val = 1.4E-10
-  based on the actual fingerprints:  val = 1.4E-14
+  based on the actual fingerprints:  val = 2.9E-14
 254178 states generated, 10368 distinct states found, 0 states left on queue.
 The depth of the complete state graph search is 4.
 The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 9 and the 95th percentile is 4).
-Finished in 03s at (2026-09-25 14:12:07)
+Finished in 03s at (2026-09-25 14:23:28)
