@@ -45,13 +45,13 @@ flowchart LR
 <!-- RESULTS:START -->
 | Metric | Value | 95% CI |
 |---|---:|---:|
-| stdio e2e tools/call overhead p95 | 2.744 ms | [0.314, 45.349] |
-| HTTP e2e tools/call overhead p95 | 19.806 ms | [17.562, 28.717] |
+| stdio e2e tools/call pooled overhead p95 | 0.634 ms | [0.596, 0.672] |
+| HTTP e2e tools/call pooled overhead p95 | 0.970 ms | [0.849, 1.123] |
 | held-out MCP corpus detection | 1.000 | [0.983, 1.000] |
 | held-out MCP corpus false positives | 0.000 | [0.000, 0.017] |
-| token verify mean | 0.4289 ms | [0.1417, 0.7162] |
-| pipeline-only stdio tools/call p95 | 0.050 ms | [0.026, 0.287] |
-| pipeline-only HTTP tools/call p95 | 0.015 ms | [0.009, 0.025] |
+| token verify mean | 0.0741 ms | [0.0414, 0.1068] |
+| pipeline-only stdio tools/call p95 | 0.015 ms | [0.013, 0.016] |
+| pipeline-only HTTP tools/call p95 | 0.006 ms | [0.005, 0.007] |
 | Zero Trust Agent Benchmark v4 test block rate | 0.954 | [0.932, 0.969] |
 | Zero Trust Agent Benchmark v4 test false positives | 0.160 | [0.130, 0.195] |
 | Zero Trust Agent Benchmark v4 test leak rate | 0.000 | [0.000, 0.004] |

@@ -107,6 +107,66 @@ def summarize_transport(direct: list[float], guarded: list[float]) -> dict[str, 
     }
 
 
+def h1_session_row(session: int, direct: list[float], guarded: list[float]) -> dict[str, Any]:
+    overhead = [guard - base for base, guard in zip(direct, guarded, strict=True)]
+    return {
+        "session": session,
+        "direct_p50_ms": quantile(direct, 0.50),
+        "direct_p95_ms": quantile(direct, 0.95),
+        "direct_p99_ms": quantile(direct, 0.99),
+        "guarded_p50_ms": quantile(guarded, 0.50),
+        "guarded_p95_ms": quantile(guarded, 0.95),
+        "guarded_p99_ms": quantile(guarded, 0.99),
+        "overhead_p50_ms": quantile(overhead, 0.50),
+        "overhead_p95_ms": quantile(overhead, 0.95),
+        "overhead_p99_ms": quantile(overhead, 0.99),
+    }
+
+
+def summarize_h1_sessions(sessions: list[dict[str, Any]]) -> dict[str, Any]:
+    direct = [value for session in sessions for value in session["direct_samples_ms"]]
+    guarded = [value for session in sessions for value in session["guarded_samples_ms"]]
+    overhead = [guard - base for base, guard in zip(direct, guarded, strict=True)]
+    return {
+        "session_count": len(sessions),
+        "calls_per_session": len(sessions[0]["direct_samples_ms"]) if sessions else 0,
+        "pooled": {
+            "direct": summarize_distribution(direct),
+            "guarded": summarize_distribution(guarded),
+            "overhead": {
+                "mean_ci_ms": mean_t_ci(overhead).as_dict(),
+                **summarize_distribution(overhead),
+            },
+        },
+        "sessions": [
+            h1_session_row(
+                int(session["session"]),
+                list(session["direct_samples_ms"]),
+                list(session["guarded_samples_ms"]),
+            )
+            for session in sessions
+        ],
+    }
+
+
+def h1_markdown_table(rows: list[dict[str, Any]]) -> str:
+    table = (
+        "| Transport | Session | Direct p50 | Direct p95 | Direct p99 | "
+        "Guarded p50 | Guarded p95 | Guarded p99 | Overhead p50 | Overhead p95 | Overhead p99 |\n"
+        "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|\n"
+    )
+    for row in rows:
+        table += (
+            f"| {row['transport']} | {row['session']} | "
+            f"{row['direct_p50_ms']:.3f} ms | {row['direct_p95_ms']:.3f} ms | "
+            f"{row['direct_p99_ms']:.3f} ms | {row['guarded_p50_ms']:.3f} ms | "
+            f"{row['guarded_p95_ms']:.3f} ms | {row['guarded_p99_ms']:.3f} ms | "
+            f"{row['overhead_p50_ms']:.3f} ms | {row['overhead_p95_ms']:.3f} ms | "
+            f"{row['overhead_p99_ms']:.3f} ms |\n"
+        )
+    return table
+
+
 def fmt_ci(metric: dict[str, Any]) -> str:
     return f"[{metric['low']:.3f}, {metric['high']:.3f}]"
 
@@ -247,6 +307,63 @@ async def guarded_stdio_samples(trials: int, pin_file: Path) -> dict[str, list[f
     return samples
 
 
+async def direct_stdio_call_samples(calls: int) -> list[float]:
+    cmd = [sys.executable, str(Path("tests") / "fixtures" / "stdio_server.py")]
+    proc = await asyncio.create_subprocess_exec(
+        *cmd, stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE
+    )
+    samples: list[float] = []
+    try:
+        await stdio_request(proc, "initialize", 1)
+        await stdio_request(proc, "tools/list", 2)
+        for i in range(calls):
+            start = time.perf_counter_ns()
+            await stdio_request(proc, "tools/call", 10_000 + i)
+            samples.append((time.perf_counter_ns() - start) / 1_000_000)
+    finally:
+        if proc.returncode is None:
+            proc.terminate()
+            await proc.wait()
+    return samples
+
+
+async def guarded_stdio_call_samples(calls: int, pin_file: Path) -> list[float]:
+    fixture = str(Path("tests") / "fixtures" / "stdio_server.py")
+    pin_file.unlink(missing_ok=True)
+    cmd = [
+        sys.executable,
+        "-m",
+        "model_context_protocol_guard.cli",
+        "stdio",
+        "--pin-file",
+        str(pin_file),
+        "--server-name",
+        "bench-stdio",
+        "--",
+        sys.executable,
+        fixture,
+    ]
+    proc = await asyncio.create_subprocess_exec(
+        *cmd,
+        stdin=asyncio.subprocess.PIPE,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
+    samples: list[float] = []
+    try:
+        await stdio_request(proc, "initialize", 1)
+        await stdio_request(proc, "tools/list", 2)
+        for i in range(calls):
+            start = time.perf_counter_ns()
+            await stdio_request(proc, "tools/call", 20_000 + i)
+            samples.append((time.perf_counter_ns() - start) / 1_000_000)
+    finally:
+        if proc.returncode is None:
+            proc.terminate()
+            await proc.wait()
+    return samples
+
+
 def upstream_response(frame: dict[str, Any]) -> dict[str, Any]:
     method = frame.get("method")
     if method == "initialize":
@@ -335,6 +452,75 @@ def http_samples(trials: int, url: str) -> dict[str, list[float]]:
                 http_request(client, url, method, 30_000 + i)
                 samples[method].append((time.perf_counter_ns() - start) / 1_000_000)
     return samples
+
+
+def http_call_samples(calls: int, url: str) -> list[float]:
+    samples: list[float] = []
+    with httpx.Client(timeout=5.0) as client:
+        http_request(client, url, "initialize", 1)
+        http_request(client, url, "tools/list", 2)
+        for i in range(calls):
+            start = time.perf_counter_ns()
+            http_request(client, url, "tools/call", 30_000 + i)
+            samples.append((time.perf_counter_ns() - start) / 1_000_000)
+    return samples
+
+
+def h1_transport_metrics(
+    sessions: int, calls: int, out: Path, *, background_load_note: str
+) -> dict[str, Any]:
+    pipeline = GuardPipeline(GuardConfig(server_name="bench-http"))
+
+    async def upstream(frame: dict[str, Any]) -> dict[str, Any]:
+        return upstream_response(frame)
+
+    stdio_sessions: list[dict[str, Any]] = []
+    http_sessions: list[dict[str, Any]] = []
+    for session in range(1, sessions + 1):
+        stdio_sessions.append(
+            {
+                "session": session,
+                "direct_samples_ms": asyncio.run(direct_stdio_call_samples(calls)),
+                "guarded_samples_ms": asyncio.run(
+                    guarded_stdio_call_samples(calls, out / f"stdio-pins-session-{session}.json")
+                ),
+            }
+        )
+        with run_uvicorn(direct_http_app()) as direct_url:
+            direct_http = http_call_samples(calls, direct_url)
+        with run_uvicorn(create_app(pipeline, upstream)) as guarded_url:
+            guarded_http = http_call_samples(calls, guarded_url)
+        http_sessions.append(
+            {
+                "session": session,
+                "direct_samples_ms": direct_http,
+                "guarded_samples_ms": guarded_http,
+            }
+        )
+    stdio = summarize_h1_sessions(stdio_sessions)
+    http = summarize_h1_sessions(http_sessions)
+    return {
+        "session_count": sessions,
+        "calls_per_session": calls,
+        "rule": "H1 passes only when the pooled stdio tools/call overhead p95 95% bootstrap CI upper bound is at most 5 ms.",
+        "background_load_note": background_load_note,
+        "stdio": {
+            "tools/call": {
+                "direct": stdio["pooled"]["direct"],
+                "guarded": stdio["pooled"]["guarded"],
+                "overhead": stdio["pooled"]["overhead"],
+                "sessions": stdio["sessions"],
+            }
+        },
+        "http": {
+            "tools/call": {
+                "direct": http["pooled"]["direct"],
+                "guarded": http["pooled"]["guarded"],
+                "overhead": http["pooled"]["overhead"],
+                "sessions": http["sessions"],
+            }
+        },
+    }
 
 
 def e2e_transport_metrics(trials: int, out: Path) -> dict[str, Any]:
@@ -428,12 +614,14 @@ def update_docs(summary: dict[str, Any]) -> None:
     v3_metrics = dict(v3.get("metrics") or {}) if v3 else {}
     v3_dataset = dict(v3.get("dataset") or {}) if v3 else {}
     shared_fpr_note = "FPR uses the shared benign test set; policy slices apply to attack traces."
+    h1_stdio = e2e["stdio"]["tools/call"]["overhead"]
+    h1_http = e2e["http"]["tools/call"]["overhead"]
     table = (
         "| Metric | Value | 95% CI |\n|---|---:|---:|\n"
-        f"| stdio e2e tools/call overhead p95 | {e2e['stdio']['tools/call']['overhead']['p95_ms']:.3f} ms | "
-        f"[{e2e['stdio']['tools/call']['overhead']['p95_ci_ms']['low']:.3f}, {e2e['stdio']['tools/call']['overhead']['p95_ci_ms']['high']:.3f}] |\n"
-        f"| HTTP e2e tools/call overhead p95 | {e2e['http']['tools/call']['overhead']['p95_ms']:.3f} ms | "
-        f"[{e2e['http']['tools/call']['overhead']['p95_ci_ms']['low']:.3f}, {e2e['http']['tools/call']['overhead']['p95_ci_ms']['high']:.3f}] |\n"
+        f"| stdio e2e tools/call pooled overhead p95 | {h1_stdio['p95_ms']:.3f} ms | "
+        f"[{h1_stdio['p95_ci_ms']['low']:.3f}, {h1_stdio['p95_ci_ms']['high']:.3f}] |\n"
+        f"| HTTP e2e tools/call pooled overhead p95 | {h1_http['p95_ms']:.3f} ms | "
+        f"[{h1_http['p95_ci_ms']['low']:.3f}, {h1_http['p95_ci_ms']['high']:.3f}] |\n"
         f"| held-out MCP corpus detection | {corpus['detection']['point']:.3f} | "
         f"[{corpus['detection']['low']:.3f}, {corpus['detection']['high']:.3f}] |\n"
         f"| held-out MCP corpus false positives | {corpus['false_positive']['point']:.3f} | "
@@ -488,7 +676,7 @@ def update_docs(summary: dict[str, Any]) -> None:
     Path("README.md").write_text(
         readme.split(start)[0] + start + "\n" + table + end + readme.split(end)[1], encoding="utf-8"
     )
-    verdict_h1 = "PASS" if e2e["stdio"]["tools/call"]["overhead"]["p95_ms"] <= 5.0 else "FAIL"
+    verdict_h1 = "PASS" if h1_stdio["p95_ci_ms"]["high"] <= 5.0 else "FAIL"
     verdict_h2 = (
         "PASS"
         if corpus["detection"]["low"] >= 0.95 and corpus["false_positive"]["high"] <= 0.02
@@ -501,6 +689,10 @@ def update_docs(summary: dict[str, Any]) -> None:
     h2_fpr_high = corpus["false_positive"]["high"]
     h3_point = summary["definition_change_detection"]["point"]
     h4_mean = summary["token_verify_ms"]["mean_ci_ms"]["point"]
+    h1_ci_high = h1_stdio["p95_ci_ms"]["high"]
+    h1_rows = [{"transport": "stdio", **row} for row in e2e["stdio"]["tools/call"]["sessions"]] + [
+        {"transport": "HTTP", **row} for row in e2e["http"]["tools/call"]["sessions"]
+    ]
     Path("docs/hypotheses.md").write_text(
         f"""# Hypotheses
 
@@ -508,7 +700,8 @@ Results are generated from bench artifacts, not hand-entered.
 
 | Hypothesis | Threshold | Result | Verdict |
 |---|---|---:|---|
-| H1 stdio e2e overhead p95 per `tools/call` | <= 5 ms | {h1_ms:.3f} ms | {verdict_h1} |
+| H1 stdio e2e overhead p95 per `tools/call` | pooled 95% CI upper bound <= 5 ms | {
+            h1_ms:.3f} ms (upper {h1_ci_high:.3f} ms) | {verdict_h1} |
 | H2 held-out description corpus detection / FPR Wilson bounds | detection low >= 0.95 and FPR high <= 0.02 | {
             h2_detection_low:.3f} / {h2_fpr_high:.3f} | {verdict_h2} |
 | H3 definition changes detected | 100% | {h3_point:.3f} | {verdict_h3} |
@@ -516,10 +709,20 @@ Results are generated from bench artifacts, not hand-entered.
 
 ## H1 method
 
-The stdio latency check starts `tests/fixtures/stdio_server.py` directly, then starts `model-context-protocol-guard stdio -- <server>` around the same server. Each process is started once. The benchmark sends `initialize` and `tools/list` before sampling. Each H1 sample times one `tools/call` request and response on the warm session. Process startup is outside the timed window. Overhead is the paired guarded sample minus the paired direct sample.
+The latency check runs {e2e["session_count"]} independent sessions with {
+            e2e["calls_per_session"]
+        } warm `tools/call` samples per session. Each session starts fresh direct and guarded processes. The stdio check starts `tests/fixtures/stdio_server.py` directly, then starts `model-context-protocol-guard stdio -- <server>` around the same server. The HTTP check starts a direct Streamable HTTP server, then starts the proxy around the same upstream handler. Each session sends `initialize` and `tools/list` before sampling. Process and server startup are outside the timed window. Overhead is the paired guarded sample minus the paired direct sample.
 
-Between commits `3bb6a40` and `57f64f1`, `bench/run_benchmarks.py` changed imports and the CLI module name from the old package to `model_context_protocol_guard`, changed the benchmark dataset path from `../azt-bench/traces` to `../zero-trust-agent-benchmark/traces`, renamed the summary block to `zero_trust_agent_benchmark`, and expanded generated result text with v4 policy-slice metrics plus a carried v3 summary when present. The direct and guarded stdio sampling loops, warm-up requests, request frames, and timing windows did not change. The earlier H1 value was 20.194 ms p95. This run measured {
-            h1_ms:.3f} ms p95 with the same end-to-end method.
+H1 passes only when the pooled stdio `tools/call` overhead p95 95% bootstrap CI upper bound is at most 5 ms. This rule avoids claiming PASS from a single noisy session.
+
+Background load note: {e2e["background_load_note"]}
+
+Between commits `3bb6a40` and `57f64f1`, `bench/run_benchmarks.py` changed imports and the CLI module name from the old package to `model_context_protocol_guard`, changed the benchmark dataset path from `../azt-bench/traces` to `../zero-trust-agent-benchmark/traces`, renamed the summary block to `zero_trust_agent_benchmark`, and expanded generated result text with v4 policy-slice metrics plus a carried v3 summary when present. The direct and guarded stdio sampling loops, warm-up requests, request frames, and timing windows did not change. The earlier H1 values were 20.194 ms, 0.439 ms, and 2.744 ms p95 across separate runs. This run measured {
+            h1_ms:.3f} ms pooled p95 with a {h1_ci_high:.3f} ms upper CI bound.
+
+## H1 sessions
+
+{h1_markdown_table(h1_rows)}
 
 MCP corpus dev: `{json.dumps(dev_corpus, sort_keys=True)}`.
 
@@ -547,14 +750,53 @@ TLC: see `specs/tlc-output.txt` from the verified run.
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--trials", type=int, default=100)
+    parser.add_argument("--h1-sessions", type=int, default=5)
+    parser.add_argument("--h1-calls", type=int, default=200)
+    parser.add_argument(
+        "--background-load-note",
+        default=(
+            "Measured on a normal developer workstation with Windows Defender and other "
+            "background services left enabled."
+        ),
+    )
+    parser.add_argument("--h1-only", action="store_true")
+    parser.add_argument("--no-docs", action="store_true")
     parser.add_argument("--out", default=None)
     args = parser.parse_args()
     out = Path(args.out) if args.out else Path("results") / run_id()
     (out / "per-trial-logs").mkdir(parents=True, exist_ok=True)
     corpus_dev_path = Path("traces") / "mcp_corpus_dev.jsonl"
     corpus_heldout_path = Path("traces") / "mcp_corpus_heldout.jsonl"
-    generate_corpus_splits(corpus_dev_path, corpus_heldout_path)
-    e2e_latency = e2e_transport_metrics(args.trials, out)
+    if not args.h1_only:
+        generate_corpus_splits(corpus_dev_path, corpus_heldout_path)
+    e2e_latency = h1_transport_metrics(
+        args.h1_sessions, args.h1_calls, out, background_load_note=args.background_load_note
+    )
+    if args.h1_only:
+        summary = {
+            "run": {
+                "timestamp_utc": utc_now(),
+                "h1_sessions": args.h1_sessions,
+                "h1_calls": args.h1_calls,
+            },
+            "e2e_latency": e2e_latency,
+        }
+        (out / "summary.json").write_text(
+            json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
+        env = {
+            "timestamp_utc": utc_now(),
+            "python": sys.version,
+            "platform": platform.platform(),
+            "machine": platform.machine(),
+            "git_sha": git_sha(),
+        }
+        (out / "env.json").write_text(
+            json.dumps(env, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
+        write_manifest(out)
+        print(json.dumps({"out": str(out), "summary": summary}, indent=2, sort_keys=True))
+        return 0
     rows: list[dict[str, Any]] = []
     issuer = CapabilityIssuer(b"b" * 32)
     token = issuer.mint(Caveats("bench", ("fetch",), time.time() + 3600, args.trials + 10))
@@ -624,7 +866,8 @@ def main() -> int:
     (out / "env.json").write_text(
         json.dumps(env, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
-    update_docs(summary)
+    if not args.no_docs:
+        update_docs(summary)
     write_manifest(out)
     print(json.dumps({"out": str(out), "summary": summary}, indent=2, sort_keys=True))
     return 0
