@@ -1,11 +1,4 @@
-"""Reference statistics for the ZTAP program.
-
-COPIED MODULE — source of truth: contextual-trust-policy-engine/contextual-trust-policy-engine
-``src/contextual_trust_policy_engine/stats.py`` (ref-v1).
-Every copy must pass ``conformance/golden_vectors.json``. Do not edit a copy in isolation.
-
-Pure standard library so it can be vendored anywhere.
-"""
+"""Statistics helpers for benchmark summaries."""
 
 from __future__ import annotations
 

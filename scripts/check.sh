@@ -2,8 +2,6 @@
 set -euo pipefail
 if [ -d "/wheels" ]; then
   python -m pip install -q --no-index --find-links /wheels hatchling editables
-elif [ -d "C:/Parag/github/ztap/_wheelhouse" ]; then
-  python -m pip install -q --no-index --find-links "C:/Parag/github/ztap/_wheelhouse" hatchling editables || python -m pip install -q hatchling editables
 else
   python -m pip install -q hatchling editables
 fi

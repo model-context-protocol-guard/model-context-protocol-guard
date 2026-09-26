@@ -53,7 +53,7 @@ def utc_now() -> str:
 
 
 def run_id() -> str:
-    return f"{datetime.now(UTC).strftime('%Y%m%dT%H%M%SZ')}-{socket.gethostname().split('.')[0].lower()[:12]}"
+    return f"{datetime.now(UTC).strftime('%Y%m%dT%H%M%SZ')}-reference"
 
 
 def timed_ns(fn: Any) -> int:
@@ -148,7 +148,7 @@ def file_sha256(path: Path) -> str | None:
 def azt_dataset_metadata() -> dict[str, Any]:
     trace_path = Path("..") / "zero-trust-agent-benchmark" / "traces" / "test.jsonl"
     metadata: dict[str, Any] = {
-        "trace_file": str(trace_path),
+        "trace_file": trace_path.as_posix(),
         "test_jsonl_sha256": file_sha256(trace_path),
     }
     with suppress(Exception):
@@ -496,6 +496,11 @@ def update_docs(summary: dict[str, Any]) -> None:
     )
     verdict_h3 = "PASS" if summary["definition_change_detection"]["point"] == 1.0 else "FAIL"
     verdict_h4 = "PASS" if summary["token_verify_ms"]["mean_ci_ms"]["point"] <= 0.5 else "FAIL"
+    h1_ms = e2e["stdio"]["tools/call"]["overhead"]["p95_ms"]
+    h2_detection_low = corpus["detection"]["low"]
+    h2_fpr_high = corpus["false_positive"]["high"]
+    h3_point = summary["definition_change_detection"]["point"]
+    h4_mean = summary["token_verify_ms"]["mean_ci_ms"]["point"]
     Path("docs/hypotheses.md").write_text(
         f"""# Hypotheses
 
@@ -503,10 +508,18 @@ Results are generated from bench artifacts, not hand-entered.
 
 | Hypothesis | Threshold | Result | Verdict |
 |---|---|---:|---|
-| H1 stdio e2e overhead p95 per `tools/call` | <= 5 ms | {e2e["stdio"]["tools/call"]["overhead"]["p95_ms"]:.3f} ms | {verdict_h1} |
-| H2 held-out description corpus detection / FPR Wilson bounds | detection low >= 0.95 and FPR high <= 0.02 | {corpus["detection"]["low"]:.3f} / {corpus["false_positive"]["high"]:.3f} | {verdict_h2} |
-| H3 definition changes detected | 100% | {summary["definition_change_detection"]["point"]:.3f} | {verdict_h3} |
-| H4 token verify mean | <= 0.5 ms | {summary["token_verify_ms"]["mean_ci_ms"]["point"]:.4f} ms | {verdict_h4} |
+| H1 stdio e2e overhead p95 per `tools/call` | <= 5 ms | {h1_ms:.3f} ms | {verdict_h1} |
+| H2 held-out description corpus detection / FPR Wilson bounds | detection low >= 0.95 and FPR high <= 0.02 | {
+            h2_detection_low:.3f} / {h2_fpr_high:.3f} | {verdict_h2} |
+| H3 definition changes detected | 100% | {h3_point:.3f} | {verdict_h3} |
+| H4 token verify mean | <= 0.5 ms | {h4_mean:.4f} ms | {verdict_h4} |
+
+## H1 method
+
+The stdio latency check starts `tests/fixtures/stdio_server.py` directly, then starts `model-context-protocol-guard stdio -- <server>` around the same server. Each process is started once. The benchmark sends `initialize` and `tools/list` before sampling. Each H1 sample times one `tools/call` request and response on the warm session. Process startup is outside the timed window. Overhead is the paired guarded sample minus the paired direct sample.
+
+Between commits `3bb6a40` and `57f64f1`, `bench/run_benchmarks.py` changed imports and the CLI module name from the old package to `model_context_protocol_guard`, changed the benchmark dataset path from `../azt-bench/traces` to `../zero-trust-agent-benchmark/traces`, renamed the summary block to `zero_trust_agent_benchmark`, and expanded generated result text with v4 policy-slice metrics plus a carried v3 summary when present. The direct and guarded stdio sampling loops, warm-up requests, request frames, and timing windows did not change. The earlier H1 value was 20.194 ms p95. This run measured {
+            h1_ms:.3f} ms p95 with the same end-to-end method.
 
 MCP corpus dev: `{json.dumps(dev_corpus, sort_keys=True)}`.
 
@@ -516,36 +529,17 @@ Zero Trust Agent Benchmark test: `{json.dumps(azt.get("metrics", azt), sort_keys
 
 Zero Trust Agent Benchmark dataset: `{json.dumps(azt.get("dataset", {}), sort_keys=True)}`.
 
-Policy-slice note: {shared_fpr_note}
-
+Policy-slice note: {shared_fpr_note}.
+{
+            f'''
 Zero Trust Agent Benchmark v3 (superseded: had shortcuts): `{json.dumps({"dataset": v3_dataset, "metrics": v3_metrics}, sort_keys=True)}`.
+'''
+            if v3_metrics
+            else ""
+        }
 
 TLC: see `specs/tlc-output.txt` from the verified run.
 """,
-        encoding="utf-8",
-    )
-    Path("paper/tables/results.tex").write_text(
-        "\\begin{tabular}{lrr}\nMetric & Point & CI \\\\\n"
-        f"Stdio e2e call p95 overhead & {e2e['stdio']['tools/call']['overhead']['p95_ms']:.3f} ms & [{e2e['stdio']['tools/call']['overhead']['p95_ci_ms']['low']:.3f},{e2e['stdio']['tools/call']['overhead']['p95_ci_ms']['high']:.3f}] \\\\\n"
-        f"HTTP e2e call p95 overhead & {e2e['http']['tools/call']['overhead']['p95_ms']:.3f} ms & [{e2e['http']['tools/call']['overhead']['p95_ci_ms']['low']:.3f},{e2e['http']['tools/call']['overhead']['p95_ci_ms']['high']:.3f}] \\\\\n"
-        f"Held-out detection & {corpus['detection']['point']:.3f} & [{corpus['detection']['low']:.3f},{corpus['detection']['high']:.3f}] \\\\\n"
-        f"ZTAB v4 overall block & {azt_metrics_map['block_rate']['point']:.3f} & {fmt_ci(azt_metrics_map['block_rate'])} \\\\\n"
-        f"ZTAB v4 overall FPR & {azt_metrics_map['false_positive_rate']['point']:.3f} & {fmt_ci(azt_metrics_map['false_positive_rate'])} \\\\\n"
-        f"ZTAB v4 overall leak & {azt_metrics_map['leak_rate']['point']:.3f} & {fmt_ci(azt_metrics_map['leak_rate'])} \\\\\n"
-        f"ZTAB v4 in-policy block & {in_policy['block_rate']['point']:.3f} & {fmt_ci(in_policy['block_rate'])} \\\\\n"
-        f"ZTAB v4 in-policy FPR (shared benign) & {azt_metrics_map['false_positive_rate']['point']:.3f} & {fmt_ci(azt_metrics_map['false_positive_rate'])} \\\\\n"
-        f"ZTAB v4 in-policy leak & {in_policy['leak_rate']['point']:.3f} & {fmt_ci(in_policy['leak_rate'])} \\\\\n"
-        f"ZTAB v4 out-of-policy block & {out_policy['block_rate']['point']:.3f} & {fmt_ci(out_policy['block_rate'])} \\\\\n"
-        f"ZTAB v4 out-of-policy FPR (shared benign) & {azt_metrics_map['false_positive_rate']['point']:.3f} & {fmt_ci(azt_metrics_map['false_positive_rate'])} \\\\\n"
-        f"ZTAB v4 out-of-policy leak & {out_policy['leak_rate']['point']:.3f} & {fmt_ci(out_policy['leak_rate'])} \\\\\n"
-        + (
-            f"ZTAB v3 superseded block/FPR/leak & "
-            f"{v3_metrics['block_rate']['point']:.3f}/{v3_metrics['false_positive_rate']['point']:.3f}/{v3_metrics['leak_rate']['point']:.3f} & "
-            f"{fmt_ci(v3_metrics['block_rate'])}/{fmt_ci(v3_metrics['false_positive_rate'])}/{fmt_ci(v3_metrics['leak_rate'])} \\\\\n"
-            if v3_metrics
-            else ""
-        )
-        + "\\end{tabular}\n",
         encoding="utf-8",
     )
 
@@ -624,7 +618,6 @@ def main() -> int:
         "python": sys.version,
         "platform": platform.platform(),
         "machine": platform.machine(),
-        "host": socket.gethostname(),
         "git_sha": git_sha(),
         "zero_trust_agent_benchmark": azt_dataset_metadata(),
     }

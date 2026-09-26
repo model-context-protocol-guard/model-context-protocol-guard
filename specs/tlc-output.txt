@@ -1,40 +1,9 @@
-TLC2 Version 2026.09.25.163503 (rev: 8f4bc8b)
-Running breadth-first search Model-Checking with fp 114 and seed 9142283238319568987 with 12 workers on 12 cores with 14448MB heap and 64MB offheap memory [pid: 33952] (Windows 11 10.0 amd64, Eclipse Adoptium 21.0.12 64bit, MSBDiskFPSet, DiskStateQueue).
-Parsing file C:\Parag\github\ztap\model-context-protocol-guard\specs\PinnedTools.tla
-Parsing file C:\Users\pasawant\AppData\Local\Temp\tlc-10914468622939354621\Naturals.tla (jar:file:/C:/Parag/github/ztap/_tools/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
-Parsing file C:\Users\pasawant\AppData\Local\Temp\tlc-10914468622939354621\TLC.tla (jar:file:/C:/Parag/github/ztap/_tools/tla2tools.jar!/tla2sany/StandardModules/TLC.tla)
-Parsing file C:\Users\pasawant\AppData\Local\Temp\tlc-10914468622939354621\_TLCTrace.tla (jar:file:/C:/Parag/github/ztap/_tools/tla2tools.jar!/tla2sany/StandardModules/_TLCTrace.tla)
-Parsing file C:\Users\pasawant\AppData\Local\Temp\tlc-10914468622939354621\Sequences.tla (jar:file:/C:/Parag/github/ztap/_tools/tla2tools.jar!/tla2sany/StandardModules/Sequences.tla)
-Parsing file C:\Users\pasawant\AppData\Local\Temp\tlc-10914468622939354621\FiniteSets.tla (jar:file:/C:/Parag/github/ztap/_tools/tla2tools.jar!/tla2sany/StandardModules/FiniteSets.tla)
-Parsing file C:\Users\pasawant\AppData\Local\Temp\tlc-10914468622939354621\TLCExt.tla (jar:file:/C:/Parag/github/ztap/_tools/tla2tools.jar!/tla2sany/StandardModules/TLCExt.tla)
-Parsing file C:\Users\pasawant\AppData\Local\Temp\tlc-10914468622939354621\Integers.tla (jar:file:/C:/Parag/github/ztap/_tools/tla2tools.jar!/tla2sany/StandardModules/Integers.tla)
-Semantic processing of module Naturals
-Semantic processing of module Sequences
-Semantic processing of module FiniteSets
-Semantic processing of module TLC
-Semantic processing of module Integers
-Semantic processing of module TLCExt
-Semantic processing of module _TLCTrace
-Semantic processing of module PinnedTools
-Linting of module TLCExt
-Linting of module _TLCTrace
-Linting of module PinnedTools
-Starting... (2026-09-25 23:16:41)
-Computing initial states...
-Computed 2 initial states...
-Computed 4 initial states...
-Computed 8 initial states...
-Computed 16 initial states...
-Computed 32 initial states...
-Computed 64 initial states...
-Finished computing initial states: 99 distinct states generated at 2026-09-25 23:16:42.
-Progress(10) at 2026-09-25 23:16:45: 1,636,746 states generated (1,636,746 s/min), 132,565 distinct states found (132,565 ds/min), 44,026 states left on queue.
+TLC verification summary for specs/PinnedTools.tla with specs/PinnedTools.cfg.
+
 Model checking completed. No error has been found.
-  Estimates of the probability that TLC did not check all reachable states
-  because two distinct states had the same fingerprint:
-  calculated (optimistic):  val = 1.1E-6
-  based on the actual fingerprints:  val = 9.4E-10
-18317178 states generated, 1131966 distinct states found, 0 states left on queue.
-The depth of the complete state graph search is 25.
-The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 9 and the 95th percentile is 2).
-Finished in 21s at (2026-09-25 23:17:00)
+States generated: 18317178.
+Distinct states found: 1131966.
+States left on queue: 0.
+Depth: 25.
+Average outdegree: 1 (minimum is 0, the maximum 8 and the 95th percentile is 2).
+Finished in 22s at (2026-09-26 00:13:02).

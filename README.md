@@ -23,7 +23,7 @@ Example `mcp.json`:
 }
 ```
 
-Linux container check uses the project wheelhouse; Windows native check uses `.venv` and the same `scripts/check.sh` gate.
+Run the same gate on Windows and in the Linux container.
 
 ## Architecture
 
@@ -45,13 +45,13 @@ flowchart LR
 <!-- RESULTS:START -->
 | Metric | Value | 95% CI |
 |---|---:|---:|
-| stdio e2e tools/call overhead p95 | 0.439 ms | [0.279, 1.097] |
-| HTTP e2e tools/call overhead p95 | 0.491 ms | [0.343, 0.538] |
+| stdio e2e tools/call overhead p95 | 2.744 ms | [0.314, 45.349] |
+| HTTP e2e tools/call overhead p95 | 19.806 ms | [17.562, 28.717] |
 | held-out MCP corpus detection | 1.000 | [0.983, 1.000] |
 | held-out MCP corpus false positives | 0.000 | [0.000, 0.017] |
-| token verify mean | 0.0573 ms | [0.0451, 0.0695] |
-| pipeline-only stdio tools/call p95 | 0.016 ms | [0.013, 0.047] |
-| pipeline-only HTTP tools/call p95 | 0.005 ms | [0.005, 0.008] |
+| token verify mean | 0.4289 ms | [0.1417, 0.7162] |
+| pipeline-only stdio tools/call p95 | 0.050 ms | [0.026, 0.287] |
+| pipeline-only HTTP tools/call p95 | 0.015 ms | [0.009, 0.025] |
 | Zero Trust Agent Benchmark v4 test block rate | 0.954 | [0.932, 0.969] |
 | Zero Trust Agent Benchmark v4 test false positives | 0.160 | [0.130, 0.195] |
 | Zero Trust Agent Benchmark v4 test leak rate | 0.000 | [0.000, 0.004] |
@@ -61,7 +61,6 @@ flowchart LR
 | Zero Trust Agent Benchmark v4 out-of-policy block rate | 1.000 | [0.985, 1.000] |
 | Zero Trust Agent Benchmark v4 out-of-policy FPR (shared benign set) | 0.160 | [0.130, 0.195] |
 | Zero Trust Agent Benchmark v4 out-of-policy leak rate | 0.000 | [0.000, 0.015] |
-| v3 (superseded: had shortcuts) block / FPR / leak | 0.956 / 0.028 / 0.001 | [0.934, 0.971] / [0.017, 0.046] / [0.000, 0.006] |
 <!-- RESULTS:END -->
 
 ## Development

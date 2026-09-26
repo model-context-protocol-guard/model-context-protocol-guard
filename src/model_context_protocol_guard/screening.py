@@ -18,7 +18,8 @@ CONTROL_TOKEN_RE = re.compile(
     re.IGNORECASE,
 )
 ASSISTANT_ADDRESS_RE = re.compile(
-    r"\b(?:assistant|model|chatgpt|copilot|agent)\b.{0,80}\b(?:ignore|follow|obey|must|secretly|instead)\b",
+    r"\b(?:assistant|model|chatbot|coding assistant|tool user)\b"
+    r".{0,80}\b(?:ignore|follow|obey|must|secretly|instead)\b",
     re.IGNORECASE | re.DOTALL,
 )
 CREDENTIAL_RE = re.compile(
@@ -82,7 +83,7 @@ def screen_description(
         )
     if CREDENTIAL_RE.search(description):
         findings.append(
-            Finding("description", "description references credentials or other MCP configuration")
+            Finding("description", "description mentions credentials or other MCP configuration")
         )
     if seen_names and tool_name in seen_names:
         findings.append(
