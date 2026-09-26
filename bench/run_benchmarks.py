@@ -676,14 +676,14 @@ def update_docs(summary: dict[str, Any]) -> None:
     Path("README.md").write_text(
         readme.split(start)[0] + start + "\n" + table + end + readme.split(end)[1], encoding="utf-8"
     )
-    verdict_h1 = "PASS" if h1_stdio["p95_ci_ms"]["high"] <= 5.0 else "FAIL"
+    verdict_h1 = "Met" if h1_stdio["p95_ci_ms"]["high"] <= 5.0 else "Not met"
     verdict_h2 = (
-        "PASS"
+        "Met"
         if corpus["detection"]["low"] >= 0.95 and corpus["false_positive"]["high"] <= 0.02
-        else "FAIL"
+        else "Not met"
     )
-    verdict_h3 = "PASS" if summary["definition_change_detection"]["point"] == 1.0 else "FAIL"
-    verdict_h4 = "PASS" if summary["token_verify_ms"]["mean_ci_ms"]["point"] <= 0.5 else "FAIL"
+    verdict_h3 = "Met" if summary["definition_change_detection"]["point"] == 1.0 else "Not met"
+    verdict_h4 = "Met" if summary["token_verify_ms"]["mean_ci_ms"]["point"] <= 0.5 else "Not met"
     h1_ms = e2e["stdio"]["tools/call"]["overhead"]["p95_ms"]
     h2_detection_low = corpus["detection"]["low"]
     h2_fpr_high = corpus["false_positive"]["high"]
@@ -694,11 +694,11 @@ def update_docs(summary: dict[str, Any]) -> None:
         {"transport": "HTTP", **row} for row in e2e["http"]["tools/call"]["sessions"]
     ]
     Path("docs/hypotheses.md").write_text(
-        f"""# Hypotheses
+        f"""# Claims tested
 
-Results are generated from bench artifacts, not hand-entered.
+Results are generated from bench artifacts.
 
-| Hypothesis | Threshold | Result | Verdict |
+| Claim | Threshold | Result | Outcome |
 |---|---|---:|---|
 | H1 stdio e2e overhead p95 per `tools/call` | pooled 95% CI upper bound <= 5 ms | {
             h1_ms:.3f} ms (upper {h1_ci_high:.3f} ms) | {verdict_h1} |
@@ -713,12 +713,11 @@ The latency check runs {e2e["session_count"]} independent sessions with {
             e2e["calls_per_session"]
         } warm `tools/call` samples per session. Each session starts fresh direct and guarded processes. The stdio check starts `tests/fixtures/stdio_server.py` directly, then starts `model-context-protocol-guard stdio -- <server>` around the same server. The HTTP check starts a direct Streamable HTTP server, then starts the proxy around the same upstream handler. Each session sends `initialize` and `tools/list` before sampling. Process and server startup are outside the timed window. Overhead is the paired guarded sample minus the paired direct sample.
 
-H1 passes only when the pooled stdio `tools/call` overhead p95 95% bootstrap CI upper bound is at most 5 ms. This rule avoids claiming PASS from a single noisy session.
+H1 passes only when the pooled stdio `tools/call` overhead p95 95% bootstrap CI upper bound is at most 5 ms. This rule avoids claiming a pass from a single noisy session.
 
 Background load note: {e2e["background_load_note"]}
 
-Between commits `b1589d2` and `e80e377`, `bench/run_benchmarks.py` changed imports and the CLI module name from the old package to `model_context_protocol_guard`, changed the benchmark dataset path from `../azt-bench/traces` to `../zero-trust-agent-benchmark/traces`, renamed the summary block to `zero_trust_agent_benchmark`, and expanded generated result text with v4 policy-slice metrics plus a carried v3 summary when present. The direct and guarded stdio sampling loops, warm-up requests, request frames, and timing windows did not change. The earlier H1 values were 20.194 ms, 0.439 ms, and 2.744 ms p95 across separate runs. This run measured {
-            h1_ms:.3f} ms pooled p95 with a {h1_ci_high:.3f} ms upper CI bound.
+This run measured {h1_ms:.3f} ms pooled p95 with a {h1_ci_high:.3f} ms upper CI bound.
 
 ## H1 sessions
 

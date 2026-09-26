@@ -10,6 +10,8 @@ if [ -d "../zero-trust-agent-benchmark" ]; then
   python -m pip install -q --no-build-isolation --no-deps -e "../zero-trust-agent-benchmark"
 elif [ -d "/zero-trust-agent-benchmark" ]; then
   python -m pip install -q --no-build-isolation --no-deps -e "/zero-trust-agent-benchmark"
+elif [ "${CI:-}" = "true" ]; then
+  python -m pip install -q "zero-trust-agent-benchmark @ git+https://github.com/zero-trust-agent-benchmark/zero-trust-agent-benchmark@v0.1.0"
 fi
 ruff check .
 ruff format --check .

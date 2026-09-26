@@ -10,3 +10,4 @@ __pycache__/
 dist/
 build/
 .model-context-protocol-guard-pins.json
+states/

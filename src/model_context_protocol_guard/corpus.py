@@ -48,7 +48,8 @@ def generate_corpus(
     per_class: int = 220,
     heldout: bool = False,
 ) -> dict[str, int]:
-    rng = random.Random(seed)
+    # Deterministic corpus order; this is not used for secrets or cryptographic choices.
+    rng = random.Random(seed)  # nosec B311
     good = GOOD_HELDOUT if heldout else GOOD_DEV
     bad = BAD_HELDOUT if heldout else BAD_DEV
     prefix = "heldout" if heldout else "dev"

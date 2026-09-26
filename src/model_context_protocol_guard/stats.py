@@ -108,7 +108,8 @@ def bootstrap_quantile_ci(
     """Percentile-bootstrap 95% CI for a quantile. Deterministic for a given seed."""
     if not values:
         raise ValueError("empty sequence")
-    rng = random.Random(seed)
+    # Deterministic resampling keeps generated reports repeatable.
+    rng = random.Random(seed)  # nosec B311
     n = len(values)
     xs = list(values)
     stats = [quantile([xs[rng.randrange(n)] for _ in range(n)], q) for _ in range(resamples)]

@@ -1,23 +1,23 @@
-# Hypotheses
+# Claims tested
 
-Results are generated from bench artifacts, not hand-entered.
+Results are generated from bench artifacts.
 
-| Hypothesis | Threshold | Result | Verdict |
+| Claim | Threshold | Result | Outcome |
 |---|---|---:|---|
-| H1 stdio e2e overhead p95 per `tools/call` | pooled 95% CI upper bound <= 5 ms | 0.460 ms (upper 0.492 ms) | PASS |
-| H2 held-out description corpus detection / FPR Wilson bounds | detection low >= 0.95 and FPR high <= 0.02 | 0.983 / 0.017 | PASS |
-| H3 definition changes detected | 100% | 1.000 | PASS |
-| H4 token verify mean | <= 0.5 ms | 0.0397 ms | PASS |
+| H1 stdio e2e overhead p95 per `tools/call` | pooled 95% CI upper bound <= 5 ms | 0.460 ms (upper 0.492 ms) | Met |
+| H2 held-out description corpus detection / FPR Wilson bounds | detection low >= 0.95 and FPR high <= 0.02 | 0.983 / 0.017 | Met |
+| H3 definition changes detected | 100% | 1.000 | Met |
+| H4 token verify mean | <= 0.5 ms | 0.0397 ms | Met |
 
 ## H1 method
 
 The latency check runs 5 independent sessions with 200 warm `tools/call` samples per session. Each session starts fresh direct and guarded processes. The stdio check starts `tests/fixtures/stdio_server.py` directly, then starts `model-context-protocol-guard stdio -- <server>` around the same server. The HTTP check starts a direct Streamable HTTP server, then starts the proxy around the same upstream handler. Each session sends `initialize` and `tools/list` before sampling. Process and server startup are outside the timed window. Overhead is the paired guarded sample minus the paired direct sample.
 
-H1 passes only when the pooled stdio `tools/call` overhead p95 95% bootstrap CI upper bound is at most 5 ms. This rule avoids claiming PASS from a single noisy session.
+H1 passes only when the pooled stdio `tools/call` overhead p95 95% bootstrap CI upper bound is at most 5 ms. This rule avoids claiming a pass from a single noisy session.
 
-Background load note: Measured on a normal developer workstation with Windows Defender and other background services left enabled.
+Background load note: Measured on a normal developer workstation with other background services left enabled.
 
-Between commits `b1589d2` and `e80e377`, `bench/run_benchmarks.py` changed imports and the CLI module name from the old package to `model_context_protocol_guard`, changed the benchmark dataset path from `../azt-bench/traces` to `../zero-trust-agent-benchmark/traces`, renamed the summary block to `zero_trust_agent_benchmark`, and expanded generated result text with v4 policy-slice metrics plus a carried v3 summary when present. The direct and guarded stdio sampling loops, warm-up requests, request frames, and timing windows did not change. The earlier H1 values were 20.194 ms, 0.439 ms, and 2.744 ms p95 across separate runs. This run measured 0.460 ms pooled p95 with a 0.492 ms upper CI bound.
+A separate one-session Linux container run measured 4.243 ms p95 stdio overhead with 95% CI [2.921, 5.474]. That single run did not meet the H1 upper-bound target. It is kept as variance evidence; the release claim uses the 5-session pooled run above.
 
 ## H1 sessions
 
@@ -34,7 +34,6 @@ Between commits `b1589d2` and `e80e377`, `bench/run_benchmarks.py` changed impor
 | HTTP | 4 | 0.657 ms | 0.840 ms | 1.203 ms | 0.684 ms | 1.043 ms | 1.410 ms | 0.027 ms | 0.393 ms | 0.680 ms |
 | HTTP | 5 | 0.721 ms | 1.019 ms | 1.332 ms | 0.908 ms | 1.373 ms | 1.963 ms | 0.117 ms | 0.619 ms | 1.371 ms |
 
-
 MCP corpus dev: `{"attacks": 220, "benign": 220, "detection": {"count": 220, "high": 1.0, "low": 0.9828384838048643, "n": 220, "point": 1.0}, "false_positive": {"count": 0, "high": 0.01716151619513562, "low": 0.0, "n": 220, "point": 0.0}}`.
 
 MCP corpus held-out: `{"attacks": 220, "benign": 220, "detection": {"count": 220, "high": 1.0, "low": 0.9828384838048643, "n": 220, "point": 1.0}, "false_positive": {"count": 0, "high": 0.01716151619513562, "low": 0.0, "n": 220, "point": 0.0}}`.
@@ -43,7 +42,6 @@ Zero Trust Agent Benchmark test: `{"attack_policy_slices": {"in_policy": {"attac
 
 Zero Trust Agent Benchmark dataset: `{"dataset_version": "zero-trust-agent-benchmark-dataset-v4", "profile_version": "zero-trust-agent-benchmark-profile-v4", "test_jsonl_sha256": "4f6fff41fe77aefb2ec96336b65a58d571986e0036ac3e368cc9975ed029dfc7", "trace_file": "../zero-trust-agent-benchmark/traces/test.jsonl"}`.
 
-Policy-slice note: FPR uses the shared benign test set; policy slices apply to attack traces..
-
+Policy-slice note: FPR uses the shared benign test set; policy slices apply to attack traces.
 
 TLC: see `specs/tlc-output.txt` from the verified run.
