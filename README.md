@@ -149,16 +149,6 @@ The Linux container run is kept because it caught a noisy single-session upper b
 - Result screening uses deterministic patterns. It can miss novel encodings and can block benign hard negatives.
 - The benchmark v4 false-positive rate was 16.0%, mostly from cautious handling of benign devops and hard-negative traces.
 
-## Related projects
-
-- [Zero Trust Agent Benchmark](https://github.com/zero-trust-agent-benchmark/zero-trust-agent-benchmark): shared trace generator and scoring harness.
-- [Contextual Trust Policy Engine](https://github.com/contextual-trust-policy-engine/contextual-trust-policy-engine): policy decisions from identity, provenance, and context.
-- [Zero Trust AI Agent Proxy](https://github.com/zero-trust-ai-agent-proxy/zero-trust-ai-agent-proxy): HTTP proxy for agent tool calls.
-- [Ephemeral Agent Secret Leasing](https://github.com/ephemeral-agent-secret-leasing/ephemeral-agent-secret-leasing): short-lived secret leases with scoped release.
-- [AI Bill of Materials Verifier](https://github.com/ai-bill-of-materials-verifier/ai-bill-of-materials-verifier): signed component and model inventory checks.
-- [Least-Privilege Agent Sandbox](https://github.com/least-privilege-agent-sandbox/least-privilege-agent-sandbox): local process sandboxing for tool execution.
-- [Zero Trust Edge Agent Mesh](https://github.com/zero-trust-edge-agent-mesh/zero-trust-edge-agent-mesh): edge policy and identity checks across nodes.
-
 ## License and citation
 
 Apache-2.0. Use `CITATION.cff` for software citation metadata.
