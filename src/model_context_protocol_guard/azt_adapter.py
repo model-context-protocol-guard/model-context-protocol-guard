@@ -25,6 +25,48 @@ SECRET_SHAPE_RE = re.compile(
     re.IGNORECASE,
 )
 DANGEROUS_SHELL_RE = re.compile(r"https?://[^\s|]+\s*\|\s*\w+|\brm\s+-[a-z]*r|\bsudo\b|\bchmod\b")
+DESTRUCTIVE_SQL_RE = re.compile(
+    r"\b(?:delete\s+from|drop\s+(?:table|database|schema)|truncate\s+table|alter\s+table|"
+    r"update\s+\w+\s+set|insert\s+into)\b",
+    re.IGNORECASE,
+)
+SECRET_EXFIL_RE = re.compile(
+    r"\b(?:exfiltrate|leak|steal|dump|reveal|print|copy|send|post|upload|hide)\b"
+    r".{0,100}\b(?:secret|token|credential|api[_ -]?key|access[_ -]?key|password)\b|"
+    r"\b(?:secret|token|credential|api[_ -]?key|access[_ -]?key|password)\b"
+    r".{0,100}\b(?:exfiltrate|leak|steal|dump|reveal|print|copy|send|post|upload|hide)\b",
+    re.IGNORECASE | re.DOTALL,
+)
+INSTRUCTION_OVERRIDE_RE = re.compile(
+    r"\b(?:ignore|disregard|override|bypass|disable|forget)\b"
+    r".{0,80}\b(?:previous|system|developer|instruction|policy|guard|safety)\b|"
+    r"\b(?:system|developer|instruction|policy|guard|safety)\b"
+    r".{0,80}\b(?:ignore|disregard|override|bypass|disable|forget)\b",
+    re.IGNORECASE | re.DOTALL,
+)
+PRIVILEGE_ESCALATION_RE = re.compile(
+    r"\b(?:admin|owner|root|sudo|privilege|permission|scope)\b"
+    r".{0,80}\b(?:grant|escalat|required|needed|bypass|override)\b|"
+    r"\b(?:grant|escalat|bypass|override)\b"
+    r".{0,80}\b(?:admin|owner|root|sudo|privilege|permission|scope)\b",
+    re.IGNORECASE | re.DOTALL,
+)
+DATA_REDIRECT_RE = re.compile(
+    r"\b(?:upload|export|forward|share|send|post|copy|message|email|redirect)\b"
+    r".{0,120}\b(?:workspace|evidence|diagnostic|digest|timeline|metric|summary|note|data|"
+    r"external|outside|drop\s+box)\b|"
+    r"\b(?:external|outside|drop\s+box)\b"
+    r".{0,120}\b(?:workspace|evidence|diagnostic|digest|timeline|metric|summary|note|data)\b",
+    re.IGNORECASE | re.DOTALL,
+)
+INVALID_POSTURE_CONTEXT_RE = re.compile(
+    r"\b(?:revoked|expired|forged|stale|replayed|invalid|weak|suspect|outside\s+the\s+trust\s+domain)\b"
+    r".{0,100}\b(?:identity|attestation|posture|evidence|trust|svid|spiffe|operation|access)\b|"
+    r"\b(?:identity|attestation|posture|evidence|trust|svid|spiffe)\b"
+    r".{0,100}\b(?:revoked|expired|forged|stale|replayed|invalid|weak|suspect|fail)\b",
+    re.IGNORECASE | re.DOTALL,
+)
+HIGH_ENTROPY_TOKEN_RE = re.compile(r"\b[A-Za-z0-9_-]{20,}\b")
 
 
 @dataclass(slots=True)
@@ -52,6 +94,8 @@ class MCPGuardDefense:
             return _deny("bad SVID", "identity")
         if str(agent.get("attestation", "valid")) in BAD_ATTESTATION:
             return _deny("bad attestation", "identity")
+        if not _valid_spiffe_id(agent, str(profile.get("trust_domain", ""))):
+            return _deny("SPIFFE trust domain mismatch", "identity")
 
         tool = str(request.get("tool") or "")
         context = dict(request.get("context") or {})
@@ -64,12 +108,29 @@ class MCPGuardDefense:
 
         risk = str(tool_cfg.get("risk", "medium"))
         origin = str(context.get("origin", ""))
-        if risk == "critical" and origin != "user":
-            return _deny("critical tool requested from untrusted context", "tool")
-        if risk == "high" and origin not in {"user", "mcp_server"}:
-            return _deny("high-risk tool requested from untrusted context", "tool")
-        if _looks_like_shell(args) and (origin != "user" or _dangerous_shell(args)):
+        if _looks_like_shell(args) and _dangerous_shell(args):
             return _deny("dangerous command invocation", "tool")
+        if _invalid_posture_context(context) and risk in {"high", "critical"}:
+            return _deny("context describes invalid identity or attestation posture", "identity")
+        if origin != "user" and (
+            _suspicious_context(context)
+            or _untrusted_context_external_destination(
+                context, set(str(x).lower() for x in profile.get("email_allowed_domains", []))
+            )
+        ):
+            return _deny(
+                "untrusted context contains instruction or exfiltration pattern", "context"
+            )
+        if tool == "db.query" and origin != "user" and _destructive_sql(args):
+            return _deny("untrusted context requested destructive SQL", "tool")
+        if tool == "fs.delete" and origin != "user":
+            return _deny("destructive filesystem operation from untrusted context", "tool")
+        if (
+            risk == "critical"
+            and origin != "user"
+            and not _allowed_critical_delegation(tool, args, str(profile.get("workspace_root", "")))
+        ):
+            return _deny("critical tool requested from untrusted context", "tool")
 
         description = str(context.get("tool_description") or "")
         findings = screen_description("azt", tool, description)
@@ -88,6 +149,8 @@ class MCPGuardDefense:
 
         if bool(tool_cfg.get("egress", False)):
             allowed_hosts = frozenset(str(x).lower() for x in profile.get("egress_allowlist", []))
+            if origin != "user" and _egress_high_entropy_payload(args):
+                return _deny("untrusted egress contains opaque high-entropy payload", "egress")
             if _email_domain_violation(
                 args, set(str(x).lower() for x in profile.get("email_allowed_domains", []))
             ):
@@ -164,12 +227,37 @@ def _untrusted_secret_request(context: dict[str, Any]) -> bool:
         return False
     text = _context_text(context)
     lowered = text.lower()
-    if "non-secret" in lowered:
+    if "non-secret" in lowered or "never the raw" in lowered or "secret reference" in lowered:
         return False
+    return bool(SECRET_EXFIL_RE.search(text) or CREDENTIAL_RE.search(text))
+
+
+def _suspicious_context(context: dict[str, Any]) -> bool:
+    text = _context_text(context)
     return bool(
-        CREDENTIAL_RE.search(text)
-        or re.search(r"\b(secret|token|credential|access[- ]?key)\b", lowered)
+        INSTRUCTION_OVERRIDE_RE.search(text)
+        or SECRET_EXFIL_RE.search(text)
+        or PRIVILEGE_ESCALATION_RE.search(text)
+        or DATA_REDIRECT_RE.search(text)
     )
+
+
+def _invalid_posture_context(context: dict[str, Any]) -> bool:
+    return bool(INVALID_POSTURE_CONTEXT_RE.search(_context_text(context)))
+
+
+def _untrusted_context_external_destination(
+    context: dict[str, Any], allowed_domains: set[str]
+) -> bool:
+    text = _context_text(context)
+    for candidate in re.findall(r"[\w.+-]+@([\w.-]+\.[A-Za-z]{2,})", text):
+        domain = candidate.lower().strip(">,; ")
+        allowed = any(
+            domain == suffix or domain.endswith("." + suffix) for suffix in allowed_domains
+        )
+        if not allowed:
+            return True
+    return False
 
 
 def _strict_frame_ambiguous(context: dict[str, Any]) -> bool:
@@ -190,6 +278,36 @@ def _looks_like_shell(args: dict[str, Any]) -> bool:
 
 def _dangerous_shell(args: dict[str, Any]) -> bool:
     return any(DANGEROUS_SHELL_RE.search(text) for text in _strings(args))
+
+
+def _allowed_critical_delegation(tool: str, args: dict[str, Any], workspace_root: str) -> bool:
+    if tool != "shell.exec":
+        return False
+    cwd = str(args.get("cwd") or "")
+    cmd = " ".join(_strings(args))
+    safe_prefixes = ("python -m pytest", "python -m compileall", "python -m pip check")
+    return cwd == workspace_root and cmd.startswith(safe_prefixes) and not _dangerous_shell(args)
+
+
+def _destructive_sql(args: dict[str, Any]) -> bool:
+    return any(DESTRUCTIVE_SQL_RE.search(text) for text in _strings(args))
+
+
+def _valid_spiffe_id(agent: dict[str, Any], trust_domain: str) -> bool:
+    spiffe_id = str(agent.get("spiffe_id") or "")
+    if not trust_domain or not spiffe_id:
+        return True
+    return spiffe_id.startswith(f"spiffe://{trust_domain}/")
+
+
+def _egress_high_entropy_payload(args: dict[str, Any]) -> bool:
+    for text in _strings(args):
+        if text.startswith(("http://", "https://", "mailto:", "secret://")) or "@" in text:
+            continue
+        for token in HIGH_ENTROPY_TOKEN_RE.findall(text):
+            if _entropy(token) >= 3.8:
+                return True
+    return False
 
 
 def _host_allowed(host: str, allowed_suffixes: frozenset[str]) -> bool:

@@ -45,20 +45,23 @@ flowchart LR
 <!-- RESULTS:START -->
 | Metric | Value | 95% CI |
 |---|---:|---:|
-| stdio e2e tools/call overhead p95 | 20.194 ms | [2.442, 58.200] |
-| HTTP e2e tools/call overhead p95 | 2.707 ms | [0.667, 4.461] |
+| stdio e2e tools/call overhead p95 | 0.439 ms | [0.279, 1.097] |
+| HTTP e2e tools/call overhead p95 | 0.491 ms | [0.343, 0.538] |
 | held-out MCP corpus detection | 1.000 | [0.983, 1.000] |
 | held-out MCP corpus false positives | 0.000 | [0.000, 0.017] |
-| token verify mean | 0.0478 ms | [0.0406, 0.0549] |
-| pipeline-only stdio tools/call p95 | 0.014 ms | [0.012, 0.028] |
-| pipeline-only HTTP tools/call p95 | 0.005 ms | [0.004, 0.008] |
-| Zero Trust Agent Benchmark test block rate | 0.956 | [0.934, 0.971] |
-| Zero Trust Agent Benchmark test false positives | 0.028 | [0.017, 0.046] |
-| Zero Trust Agent Benchmark test leak rate | 0.001 | [0.000, 0.006] |
-| Zero Trust Agent Benchmark in-policy block rate | 0.916 | [0.875, 0.944] |
-| Zero Trust Agent Benchmark in-policy leak rate | 0.004 | [0.001, 0.022] |
-| Zero Trust Agent Benchmark out-of-policy block rate | 0.996 | [0.978, 0.999] |
-| Zero Trust Agent Benchmark out-of-policy leak rate | 0.000 | [0.000, 0.015] |
+| token verify mean | 0.0573 ms | [0.0451, 0.0695] |
+| pipeline-only stdio tools/call p95 | 0.016 ms | [0.013, 0.047] |
+| pipeline-only HTTP tools/call p95 | 0.005 ms | [0.005, 0.008] |
+| Zero Trust Agent Benchmark v4 test block rate | 0.954 | [0.932, 0.969] |
+| Zero Trust Agent Benchmark v4 test false positives | 0.160 | [0.130, 0.195] |
+| Zero Trust Agent Benchmark v4 test leak rate | 0.000 | [0.000, 0.004] |
+| Zero Trust Agent Benchmark v4 in-policy block rate | 0.908 | [0.866, 0.938] |
+| Zero Trust Agent Benchmark v4 in-policy FPR (shared benign set) | 0.160 | [0.130, 0.195] |
+| Zero Trust Agent Benchmark v4 in-policy leak rate | 0.000 | [0.000, 0.015] |
+| Zero Trust Agent Benchmark v4 out-of-policy block rate | 1.000 | [0.985, 1.000] |
+| Zero Trust Agent Benchmark v4 out-of-policy FPR (shared benign set) | 0.160 | [0.130, 0.195] |
+| Zero Trust Agent Benchmark v4 out-of-policy leak rate | 0.000 | [0.000, 0.015] |
+| v3 (superseded: had shortcuts) block / FPR / leak | 0.956 / 0.028 / 0.001 | [0.934, 0.971] / [0.017, 0.046] / [0.000, 0.006] |
 <!-- RESULTS:END -->
 
 ## Development

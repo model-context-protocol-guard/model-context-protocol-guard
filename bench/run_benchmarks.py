@@ -111,6 +111,34 @@ def fmt_ci(metric: dict[str, Any]) -> str:
     return f"[{metric['low']:.3f}, {metric['high']:.3f}]"
 
 
+def fmt_rate(metric: dict[str, Any]) -> str:
+    return f"{metric['point']:.3f} {fmt_ci(metric)}"
+
+
+def benchmark_result_block(summary: dict[str, Any]) -> dict[str, Any] | None:
+    for key in ("zero_trust_agent_benchmark", "azt_bench"):
+        block = summary.get(key)
+        if isinstance(block, dict) and "metrics" in block:
+            return block
+    return None
+
+
+def superseded_v3_result() -> dict[str, Any] | None:
+    candidates: list[tuple[str, dict[str, Any]]] = []
+    for summary_path in Path("results").glob("*/summary.json"):
+        with suppress(Exception):
+            block = benchmark_result_block(json.loads(summary_path.read_text(encoding="utf-8")))
+            if not block:
+                continue
+            dataset = dict(block.get("dataset") or {})
+            version = str(dataset.get("dataset_version") or "")
+            if "v3" in version:
+                candidates.append((summary_path.parent.name, block))
+    if not candidates:
+        return None
+    return sorted(candidates, key=lambda row: row[0])[-1][1]
+
+
 def file_sha256(path: Path) -> str | None:
     if not path.exists():
         return None
@@ -396,6 +424,10 @@ def update_docs(summary: dict[str, Any]) -> None:
     slices = azt_metrics_map.get("attack_policy_slices", {})
     in_policy = slices.get("in_policy", {})
     out_policy = slices.get("out_of_policy", {})
+    v3 = superseded_v3_result()
+    v3_metrics = dict(v3.get("metrics") or {}) if v3 else {}
+    v3_dataset = dict(v3.get("dataset") or {}) if v3 else {}
+    shared_fpr_note = "FPR uses the shared benign test set; policy slices apply to attack traces."
     table = (
         "| Metric | Value | 95% CI |\n|---|---:|---:|\n"
         f"| stdio e2e tools/call overhead p95 | {e2e['stdio']['tools/call']['overhead']['p95_ms']:.3f} ms | "
@@ -415,26 +447,40 @@ def update_docs(summary: dict[str, Any]) -> None:
     )
     if "block_rate" in azt_metrics_map:
         table += (
-            f"| Zero Trust Agent Benchmark test block rate | {azt_metrics_map['block_rate']['point']:.3f} | "
+            f"| Zero Trust Agent Benchmark v4 test block rate | {azt_metrics_map['block_rate']['point']:.3f} | "
             f"{fmt_ci(azt_metrics_map['block_rate'])} |\n"
-            f"| Zero Trust Agent Benchmark test false positives | {azt_metrics_map['false_positive_rate']['point']:.3f} | "
+            f"| Zero Trust Agent Benchmark v4 test false positives | {azt_metrics_map['false_positive_rate']['point']:.3f} | "
             f"{fmt_ci(azt_metrics_map['false_positive_rate'])} |\n"
-            f"| Zero Trust Agent Benchmark test leak rate | {azt_metrics_map['leak_rate']['point']:.3f} | "
+            f"| Zero Trust Agent Benchmark v4 test leak rate | {azt_metrics_map['leak_rate']['point']:.3f} | "
             f"{fmt_ci(azt_metrics_map['leak_rate'])} |\n"
         )
     if in_policy:
         table += (
-            f"| Zero Trust Agent Benchmark in-policy block rate | {in_policy['block_rate']['point']:.3f} | "
+            f"| Zero Trust Agent Benchmark v4 in-policy block rate | {in_policy['block_rate']['point']:.3f} | "
             f"{fmt_ci(in_policy['block_rate'])} |\n"
-            f"| Zero Trust Agent Benchmark in-policy leak rate | {in_policy['leak_rate']['point']:.3f} | "
+            f"| Zero Trust Agent Benchmark v4 in-policy FPR (shared benign set) | {azt_metrics_map['false_positive_rate']['point']:.3f} | "
+            f"{fmt_ci(azt_metrics_map['false_positive_rate'])} |\n"
+            f"| Zero Trust Agent Benchmark v4 in-policy leak rate | {in_policy['leak_rate']['point']:.3f} | "
             f"{fmt_ci(in_policy['leak_rate'])} |\n"
         )
     if out_policy:
         table += (
-            f"| Zero Trust Agent Benchmark out-of-policy block rate | {out_policy['block_rate']['point']:.3f} | "
+            f"| Zero Trust Agent Benchmark v4 out-of-policy block rate | {out_policy['block_rate']['point']:.3f} | "
             f"{fmt_ci(out_policy['block_rate'])} |\n"
-            f"| Zero Trust Agent Benchmark out-of-policy leak rate | {out_policy['leak_rate']['point']:.3f} | "
+            f"| Zero Trust Agent Benchmark v4 out-of-policy FPR (shared benign set) | {azt_metrics_map['false_positive_rate']['point']:.3f} | "
+            f"{fmt_ci(azt_metrics_map['false_positive_rate'])} |\n"
+            f"| Zero Trust Agent Benchmark v4 out-of-policy leak rate | {out_policy['leak_rate']['point']:.3f} | "
             f"{fmt_ci(out_policy['leak_rate'])} |\n"
+        )
+    if v3_metrics:
+        table += (
+            f"| v3 (superseded: had shortcuts) block / FPR / leak | "
+            f"{v3_metrics['block_rate']['point']:.3f} / "
+            f"{v3_metrics['false_positive_rate']['point']:.3f} / "
+            f"{v3_metrics['leak_rate']['point']:.3f} | "
+            f"{fmt_ci(v3_metrics['block_rate'])} / "
+            f"{fmt_ci(v3_metrics['false_positive_rate'])} / "
+            f"{fmt_ci(v3_metrics['leak_rate'])} |\n"
         )
     readme = Path("README.md").read_text(encoding="utf-8")
     start = "<!-- RESULTS:START -->"
@@ -470,20 +516,36 @@ Zero Trust Agent Benchmark test: `{json.dumps(azt.get("metrics", azt), sort_keys
 
 Zero Trust Agent Benchmark dataset: `{json.dumps(azt.get("dataset", {}), sort_keys=True)}`.
 
+Policy-slice note: {shared_fpr_note}
+
+Zero Trust Agent Benchmark v3 (superseded: had shortcuts): `{json.dumps({"dataset": v3_dataset, "metrics": v3_metrics}, sort_keys=True)}`.
+
 TLC: see `specs/tlc-output.txt` from the verified run.
 """,
         encoding="utf-8",
     )
     Path("paper/tables/results.tex").write_text(
-        "\\begin{tabular}{lrr}\nMetric & Point & CI \\\\ \n"
-        f"Stdio e2e call p95 overhead & {e2e['stdio']['tools/call']['overhead']['p95_ms']:.3f} ms & [{e2e['stdio']['tools/call']['overhead']['p95_ci_ms']['low']:.3f},{e2e['stdio']['tools/call']['overhead']['p95_ci_ms']['high']:.3f}] \\\\ \n"
-        f"HTTP e2e call p95 overhead & {e2e['http']['tools/call']['overhead']['p95_ms']:.3f} ms & [{e2e['http']['tools/call']['overhead']['p95_ci_ms']['low']:.3f},{e2e['http']['tools/call']['overhead']['p95_ci_ms']['high']:.3f}] \\\\ \n"
-        f"Held-out detection & {corpus['detection']['point']:.3f} & [{corpus['detection']['low']:.3f},{corpus['detection']['high']:.3f}] \\\\ \n"
-        f"AZT overall block & {azt_metrics_map['block_rate']['point']:.3f} & {fmt_ci(azt_metrics_map['block_rate'])} \\\\ \n"
-        f"AZT overall FPR & {azt_metrics_map['false_positive_rate']['point']:.3f} & {fmt_ci(azt_metrics_map['false_positive_rate'])} \\\\ \n"
-        f"AZT in-policy block & {in_policy['block_rate']['point']:.3f} & {fmt_ci(in_policy['block_rate'])} \\\\ \n"
-        f"AZT out-of-policy block & {out_policy['block_rate']['point']:.3f} & {fmt_ci(out_policy['block_rate'])} \\\\ \n"
-        "\\end{tabular}\n",
+        "\\begin{tabular}{lrr}\nMetric & Point & CI \\\\\n"
+        f"Stdio e2e call p95 overhead & {e2e['stdio']['tools/call']['overhead']['p95_ms']:.3f} ms & [{e2e['stdio']['tools/call']['overhead']['p95_ci_ms']['low']:.3f},{e2e['stdio']['tools/call']['overhead']['p95_ci_ms']['high']:.3f}] \\\\\n"
+        f"HTTP e2e call p95 overhead & {e2e['http']['tools/call']['overhead']['p95_ms']:.3f} ms & [{e2e['http']['tools/call']['overhead']['p95_ci_ms']['low']:.3f},{e2e['http']['tools/call']['overhead']['p95_ci_ms']['high']:.3f}] \\\\\n"
+        f"Held-out detection & {corpus['detection']['point']:.3f} & [{corpus['detection']['low']:.3f},{corpus['detection']['high']:.3f}] \\\\\n"
+        f"ZTAB v4 overall block & {azt_metrics_map['block_rate']['point']:.3f} & {fmt_ci(azt_metrics_map['block_rate'])} \\\\\n"
+        f"ZTAB v4 overall FPR & {azt_metrics_map['false_positive_rate']['point']:.3f} & {fmt_ci(azt_metrics_map['false_positive_rate'])} \\\\\n"
+        f"ZTAB v4 overall leak & {azt_metrics_map['leak_rate']['point']:.3f} & {fmt_ci(azt_metrics_map['leak_rate'])} \\\\\n"
+        f"ZTAB v4 in-policy block & {in_policy['block_rate']['point']:.3f} & {fmt_ci(in_policy['block_rate'])} \\\\\n"
+        f"ZTAB v4 in-policy FPR (shared benign) & {azt_metrics_map['false_positive_rate']['point']:.3f} & {fmt_ci(azt_metrics_map['false_positive_rate'])} \\\\\n"
+        f"ZTAB v4 in-policy leak & {in_policy['leak_rate']['point']:.3f} & {fmt_ci(in_policy['leak_rate'])} \\\\\n"
+        f"ZTAB v4 out-of-policy block & {out_policy['block_rate']['point']:.3f} & {fmt_ci(out_policy['block_rate'])} \\\\\n"
+        f"ZTAB v4 out-of-policy FPR (shared benign) & {azt_metrics_map['false_positive_rate']['point']:.3f} & {fmt_ci(azt_metrics_map['false_positive_rate'])} \\\\\n"
+        f"ZTAB v4 out-of-policy leak & {out_policy['leak_rate']['point']:.3f} & {fmt_ci(out_policy['leak_rate'])} \\\\\n"
+        + (
+            f"ZTAB v3 superseded block/FPR/leak & "
+            f"{v3_metrics['block_rate']['point']:.3f}/{v3_metrics['false_positive_rate']['point']:.3f}/{v3_metrics['leak_rate']['point']:.3f} & "
+            f"{fmt_ci(v3_metrics['block_rate'])}/{fmt_ci(v3_metrics['false_positive_rate'])}/{fmt_ci(v3_metrics['leak_rate'])} \\\\\n"
+            if v3_metrics
+            else ""
+        )
+        + "\\end{tabular}\n",
         encoding="utf-8",
     )
 

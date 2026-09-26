@@ -1,10 +1,16 @@
 \begin{tabular}{lrr}
-Metric & Point & CI \\ 
-Stdio e2e call p95 overhead & 20.194 ms & [2.442,58.200] \\ 
-HTTP e2e call p95 overhead & 2.707 ms & [0.667,4.461] \\ 
-Held-out detection & 1.000 & [0.983,1.000] \\ 
-AZT overall block & 0.956 & [0.934, 0.971] \\ 
-AZT overall FPR & 0.028 & [0.017, 0.046] \\ 
-AZT in-policy block & 0.916 & [0.875, 0.944] \\ 
-AZT out-of-policy block & 0.996 & [0.978, 0.999] \\ 
+Metric & Point & CI \\
+Stdio e2e call p95 overhead & 0.439 ms & [0.279,1.097] \\
+HTTP e2e call p95 overhead & 0.491 ms & [0.343,0.538] \\
+Held-out detection & 1.000 & [0.983,1.000] \\
+ZTAB v4 overall block & 0.954 & [0.932, 0.969] \\
+ZTAB v4 overall FPR & 0.160 & [0.130, 0.195] \\
+ZTAB v4 overall leak & 0.000 & [0.000, 0.004] \\
+ZTAB v4 in-policy block & 0.908 & [0.866, 0.938] \\
+ZTAB v4 in-policy FPR (shared benign) & 0.160 & [0.130, 0.195] \\
+ZTAB v4 in-policy leak & 0.000 & [0.000, 0.015] \\
+ZTAB v4 out-of-policy block & 1.000 & [0.985, 1.000] \\
+ZTAB v4 out-of-policy FPR (shared benign) & 0.160 & [0.130, 0.195] \\
+ZTAB v4 out-of-policy leak & 0.000 & [0.000, 0.015] \\
+ZTAB v3 superseded block/FPR/leak & 0.956/0.028/0.001 & [0.934, 0.971]/[0.017, 0.046]/[0.000, 0.006] \\
 \end{tabular}
