@@ -10,23 +10,23 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
-from mcp_guard.audit import AuditLog, verify_chain
-from mcp_guard.cli import build_parser, main
-from mcp_guard.corpus import generate_corpus
-from mcp_guard.egress import EgressPolicy, check_egress, extract_hosts
-from mcp_guard.jsonrpc import JsonRpcError, loads_strict, parse_frame
-from mcp_guard.models import GuardDecision, ToolDefinition
-from mcp_guard.pinning import ToolPinStore
-from mcp_guard.pipeline import GuardConfig, GuardPipeline, decision_from_findings
-from mcp_guard.screening import (
+from model_context_protocol_guard.audit import AuditLog, verify_chain
+from model_context_protocol_guard.cli import build_parser, main
+from model_context_protocol_guard.corpus import generate_corpus
+from model_context_protocol_guard.egress import EgressPolicy, check_egress, extract_hosts
+from model_context_protocol_guard.jsonrpc import JsonRpcError, loads_strict, parse_frame
+from model_context_protocol_guard.models import GuardDecision, ToolDefinition
+from model_context_protocol_guard.pinning import ToolPinStore
+from model_context_protocol_guard.pipeline import GuardConfig, GuardPipeline, decision_from_findings
+from model_context_protocol_guard.screening import (
     Finding,
     load_rule_file,
     sanitize_result,
     screen_description,
     screen_result,
 )
-from mcp_guard.tokens import CapabilityIssuer, Caveats, attenuate, is_attenuation
-from mcp_guard.transports.http import create_app
+from model_context_protocol_guard.tokens import CapabilityIssuer, Caveats, attenuate, is_attenuation
+from model_context_protocol_guard.transports.http import create_app
 
 GOOD_DESCRIPTIONS = [
     "Read public notes selected by the user.",
@@ -165,7 +165,7 @@ def test_capability_rejects_wrong_server_tool_expiry_and_path() -> None:
 
 @pytest.mark.asyncio
 async def test_stdio_proxy_not_running_error() -> None:
-    from mcp_guard.transports.stdio import AsyncStdioProxy, StdioProxyError
+    from model_context_protocol_guard.transports.stdio import AsyncStdioProxy, StdioProxyError
 
     with pytest.raises(StdioProxyError):
         await AsyncStdioProxy(["python"], GuardPipeline()).forward(
@@ -297,9 +297,9 @@ def test_docker_opa_integration_runs_when_enabled() -> None:
 
 
 def test_azt_adapter_branch_coverage() -> None:
-    from azt_bench.profile import profile
+    from zero_trust_agent_benchmark.profile import profile
 
-    from mcp_guard.azt_adapter import MCPGuardDefense
+    from model_context_protocol_guard.azt_adapter import MCPGuardDefense
 
     cfg = profile()
     base = {
@@ -325,9 +325,9 @@ def test_azt_adapter_branch_coverage() -> None:
 
 
 def test_azt_adapter_new_security_branches() -> None:
-    from azt_bench.profile import profile
+    from zero_trust_agent_benchmark.profile import profile
 
-    from mcp_guard.azt_adapter import MCPGuardDefense
+    from model_context_protocol_guard.azt_adapter import MCPGuardDefense
 
     cfg = profile()
     d = MCPGuardDefense(cfg)

@@ -2,7 +2,12 @@ from __future__ import annotations
 
 import pytest
 
-from mcp_guard.jsonrpc import JsonRpcError, compare_strict_tolerant, parse_frame, serialize_frame
+from model_context_protocol_guard.jsonrpc import (
+    JsonRpcError,
+    compare_strict_tolerant,
+    parse_frame,
+    serialize_frame,
+)
 
 
 def test_strict_jsonrpc_roundtrip() -> None:

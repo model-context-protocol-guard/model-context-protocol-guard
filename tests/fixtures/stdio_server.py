@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import sys
 
-from mcp_guard.jsonrpc import parse_frame, serialize_frame
+from model_context_protocol_guard.jsonrpc import parse_frame, serialize_frame
 
 TOOL = {
     "name": "echo",

@@ -13,10 +13,10 @@ from .transports.stdio import relay_stdio
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="mcp-guard")
+    parser = argparse.ArgumentParser(prog="model-context-protocol-guard")
     sub = parser.add_subparsers(dest="cmd", required=True)
     p_stdio = sub.add_parser("stdio", help="wrap a stdio MCP server")
-    p_stdio.add_argument("--pin-file", default=".mcp-guard-pins.json")
+    p_stdio.add_argument("--pin-file", default=".model-context-protocol-guard-pins.json")
     p_stdio.add_argument("--server-name", default="default")
     p_stdio.add_argument("command", nargs=argparse.REMAINDER)
     p_http = sub.add_parser("http-demo", help="serve demo Streamable HTTP proxy")
@@ -31,7 +31,7 @@ def main(argv: list[str] | None = None) -> int:
         if command and command[0] == "--":
             command = command[1:]
         if not command:
-            raise SystemExit("mcp-guard stdio requires -- <server cmd>")
+            raise SystemExit("model-context-protocol-guard stdio requires -- <server cmd>")
         pipeline = GuardPipeline(
             GuardConfig(server_name=args.server_name, pin_file=Path(args.pin_file))
         )

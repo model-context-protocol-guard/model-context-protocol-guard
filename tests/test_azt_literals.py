@@ -5,9 +5,9 @@ import pytest
 
 def test_no_high_signal_azt_generator_literals_in_src() -> None:
     try:
-        from azt_bench.generator import literal_tokens
+        from zero_trust_agent_benchmark.generator import literal_tokens
     except Exception as exc:  # pragma: no cover - dependency is installed for dev/bench checks
-        pytest.skip(f"azt-bench literal token API unavailable: {exc}")
+        pytest.skip(f"zero-trust-agent-benchmark literal token API unavailable: {exc}")
     from pathlib import Path
 
     source = "\n".join(

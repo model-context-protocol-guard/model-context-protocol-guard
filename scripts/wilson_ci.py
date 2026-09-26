@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 
-from mcp_guard.stats import wilson
+from model_context_protocol_guard.stats import wilson
 
 
 def main() -> int:

@@ -1,4 +1,6 @@
-"""MCP-Guard: deny-by-default security proxy for Model Context Protocol servers."""
+"""
+Model Context Protocol Guard: deny-by-default security proxy for Model Context Protocol servers.
+"""
 
 from __future__ import annotations
 

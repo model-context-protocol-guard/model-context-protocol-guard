@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from mcp_guard.audit import verify_chain
-from mcp_guard.pipeline import GuardConfig, GuardPipeline
+from model_context_protocol_guard.audit import verify_chain
+from model_context_protocol_guard.pipeline import GuardConfig, GuardPipeline
 
 TOOL = {
     "name": "fetch",

@@ -6,10 +6,10 @@ from pathlib import Path
 import pytest
 from starlette.testclient import TestClient
 
-from mcp_guard.azt_adapter import defense
-from mcp_guard.pipeline import GuardConfig, GuardPipeline
-from mcp_guard.transports.http import create_app
-from mcp_guard.transports.stdio import AsyncStdioProxy
+from model_context_protocol_guard.azt_adapter import defense
+from model_context_protocol_guard.pipeline import GuardConfig, GuardPipeline
+from model_context_protocol_guard.transports.http import create_app
+from model_context_protocol_guard.transports.stdio import AsyncStdioProxy
 
 
 @pytest.mark.asyncio

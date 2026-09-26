@@ -7,8 +7,8 @@ import pytest
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
-from mcp_guard.egress import EgressPolicy, check_egress, extract_hosts
-from mcp_guard.tokens import CapabilityIssuer, Caveats, attenuate, is_attenuation
+from model_context_protocol_guard.egress import EgressPolicy, check_egress, extract_hosts
+from model_context_protocol_guard.tokens import CapabilityIssuer, Caveats, attenuate, is_attenuation
 
 
 def test_egress_extracts_percent_and_base64_hosts() -> None:

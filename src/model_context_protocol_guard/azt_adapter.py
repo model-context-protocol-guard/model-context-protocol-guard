@@ -1,4 +1,7 @@
-"""AZT-Bench in-process defense adapter using MCP-Guard mechanisms and profile policy."""
+"""
+Zero Trust Agent Benchmark in-process defense adapter using Model Context Protocol Guard
+mechanisms and profile policy.
+"""
 
 from __future__ import annotations
 
@@ -35,7 +38,7 @@ class MCPGuardDefense:
         if self.cfg:
             return self.cfg
         with suppress(Exception):
-            from azt_bench.profile import profile
+            from zero_trust_agent_benchmark.profile import profile
 
             self.cfg = dict(profile())
             return self.cfg
@@ -92,7 +95,7 @@ class MCPGuardDefense:
             egress = check_egress(args, EgressPolicy(allowed_hosts), resolver=lambda _h: [])
             if egress and not _profile_hosts_allowed(args, allowed_hosts):
                 return _deny(egress[0].reason, "egress")
-        return {"decision": "allow", "reason": "ok", "component": "mcp_guard"}
+        return {"decision": "allow", "reason": "ok", "component": "model_context_protocol_guard"}
 
 
 def _deny(reason: str, component: str) -> dict[str, str]:

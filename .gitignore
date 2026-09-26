@@ -9,4 +9,4 @@ __pycache__/
 *.egg-info/
 dist/
 build/
-.mcp-guard-pins.json
+.model-context-protocol-guard-pins.json

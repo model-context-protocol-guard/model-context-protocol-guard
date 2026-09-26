@@ -3,8 +3,8 @@ python-image=python:3.12-slim
 anyio==4.15.1
 ast_serialize==0.11.2
 attrs==26.1.0
-# Editable Git install with no remote (azt-bench==0.1.0)
--e c:\parag\github\ztap\azt-bench
+# Editable Git install with no remote (zero-trust-agent-benchmark==0.1.0)
+-e c:\parag\github\ztap\zero-trust-agent-benchmark
 certifi==2026.7.22
 click==8.5.0
 colorama==0.4.6
@@ -20,8 +20,8 @@ iniconfig==2.3.0
 jsonschema==4.26.0
 jsonschema-specifications==2025.9.1
 librt==0.15.0
-# Editable install with no version control (mcp-guard==0.1.0)
--e c:\parag\github\ztap\mcp-guard
+# Editable install with no version control (model-context-protocol-guard==0.1.0)
+-e c:\parag\github\ztap\model-context-protocol-guard
 mypy==2.3.1
 mypy_extensions==1.1.0
 packaging==26.3

@@ -1,6 +1,6 @@
 TLC2 Version 2026.09.25.163503 (rev: 8f4bc8b)
 Running breadth-first search Model-Checking with fp 44 and seed 7578055490892840703 with 12 workers on 12 cores with 14448MB heap and 64MB offheap memory [pid: 8588] (Windows 11 10.0 amd64, Eclipse Adoptium 21.0.12 64bit, MSBDiskFPSet, DiskStateQueue).
-Parsing file C:\Parag\github\ztap\mcp-guard\specs\PinnedTools.tla
+Parsing file C:\Parag\github\ztap\model-context-protocol-guard\specs\PinnedTools.tla
 Parsing file C:\Users\pasawant\AppData\Local\Temp\tlc-13688114261671035954\Naturals.tla (jar:file:/C:/Parag/github/ztap/_tools/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
 Parsing file C:\Users\pasawant\AppData\Local\Temp\tlc-13688114261671035954\TLC.tla (jar:file:/C:/Parag/github/ztap/_tools/tla2tools.jar!/tla2sany/StandardModules/TLC.tla)
 Parsing file C:\Users\pasawant\AppData\Local\Temp\tlc-13688114261671035954\_TLCTrace.tla (jar:file:/C:/Parag/github/ztap/_tools/tla2tools.jar!/tla2sany/StandardModules/_TLCTrace.tla)

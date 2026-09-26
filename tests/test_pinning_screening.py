@@ -2,9 +2,13 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from mcp_guard.models import ToolDefinition
-from mcp_guard.pinning import ToolPinStore, tool_hash
-from mcp_guard.screening import sanitize_result, screen_description, screen_result
+from model_context_protocol_guard.models import ToolDefinition
+from model_context_protocol_guard.pinning import ToolPinStore, tool_hash
+from model_context_protocol_guard.screening import (
+    sanitize_result,
+    screen_description,
+    screen_result,
+)
 
 
 def test_pin_store_tofu_and_change_block(tmp_path: Path) -> None:

@@ -8,13 +8,13 @@ else
   python -m pip install -q hatchling editables
 fi
 python -m pip install -q --no-build-isolation -e ".[dev]"
-if [ -d "../azt-bench" ]; then
-  python -m pip install -q --no-build-isolation --no-deps -e "../azt-bench"
-elif [ -d "/azt-bench" ]; then
-  python -m pip install -q --no-build-isolation --no-deps -e "/azt-bench"
+if [ -d "../zero-trust-agent-benchmark" ]; then
+  python -m pip install -q --no-build-isolation --no-deps -e "../zero-trust-agent-benchmark"
+elif [ -d "/zero-trust-agent-benchmark" ]; then
+  python -m pip install -q --no-build-isolation --no-deps -e "/zero-trust-agent-benchmark"
 fi
 ruff check .
 ruff format --check .
 mypy src
-pytest -q --cov=mcp_guard --cov-report=term-missing --cov-fail-under=90
+pytest -q --cov=model_context_protocol_guard --cov-report=term-missing --cov-fail-under=90
 bash scripts/tlc.sh

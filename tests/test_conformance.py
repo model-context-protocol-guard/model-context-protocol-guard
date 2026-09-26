@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-PKG = "mcp_guard"  # e.g. "apect"
+PKG = "model_context_protocol_guard"  # e.g. "contextual_trust_policy_engine"
 
 GOLDEN = json.loads(
     (Path(__file__).resolve().parents[1] / "conformance" / "golden_vectors.json").read_text()

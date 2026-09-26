@@ -23,15 +23,15 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse, StreamingResponse
 from starlette.routing import Route
 
-from mcp_guard.azt_adapter import defense
-from mcp_guard.corpus import generate_corpus_splits
-from mcp_guard.jsonrpc import parse_frame, serialize_frame
-from mcp_guard.models import ToolDefinition
-from mcp_guard.pipeline import GuardConfig, GuardPipeline
-from mcp_guard.screening import screen_description
-from mcp_guard.stats import bootstrap_quantile_ci, mean_t_ci, quantile, wilson
-from mcp_guard.tokens import CapabilityIssuer, Caveats
-from mcp_guard.transports.http import create_app
+from model_context_protocol_guard.azt_adapter import defense
+from model_context_protocol_guard.corpus import generate_corpus_splits
+from model_context_protocol_guard.jsonrpc import parse_frame, serialize_frame
+from model_context_protocol_guard.models import ToolDefinition
+from model_context_protocol_guard.pipeline import GuardConfig, GuardPipeline
+from model_context_protocol_guard.screening import screen_description
+from model_context_protocol_guard.stats import bootstrap_quantile_ci, mean_t_ci, quantile, wilson
+from model_context_protocol_guard.tokens import CapabilityIssuer, Caveats
+from model_context_protocol_guard.transports.http import create_app
 
 TOOL = ToolDefinition(
     "fetch",
@@ -118,13 +118,13 @@ def file_sha256(path: Path) -> str | None:
 
 
 def azt_dataset_metadata() -> dict[str, Any]:
-    trace_path = Path("..") / "azt-bench" / "traces" / "test.jsonl"
+    trace_path = Path("..") / "zero-trust-agent-benchmark" / "traces" / "test.jsonl"
     metadata: dict[str, Any] = {
         "trace_file": str(trace_path),
         "test_jsonl_sha256": file_sha256(trace_path),
     }
     with suppress(Exception):
-        from azt_bench.profile import profile
+        from zero_trust_agent_benchmark.profile import profile
 
         prof = profile()
         metadata["dataset_version"] = prof.get("dataset_version")
@@ -187,7 +187,7 @@ async def guarded_stdio_samples(trials: int, pin_file: Path) -> dict[str, list[f
     cmd = [
         sys.executable,
         "-m",
-        "mcp_guard.cli",
+        "model_context_protocol_guard.cli",
         "stdio",
         "--pin-file",
         str(pin_file),
@@ -359,10 +359,10 @@ def corpus_metrics(corpus: Path) -> dict[str, Any]:
 def azt_metrics() -> dict[str, Any]:
     metadata = azt_dataset_metadata()
     try:
-        from azt_bench import evaluate, load_traces
+        from zero_trust_agent_benchmark import evaluate, load_traces
     except Exception as exc:
         return {"status": "skipped", "reason": exc.__class__.__name__, "dataset": metadata}
-    trace_dir = Path("..") / "azt-bench" / "traces"
+    trace_dir = Path("..") / "zero-trust-agent-benchmark" / "traces"
     traces = load_traces("test", trace_dir if trace_dir.exists() else None)
     report = evaluate(defense, traces)
     out = report.to_dict()
@@ -391,7 +391,7 @@ def update_docs(summary: dict[str, Any]) -> None:
     e2e = summary["e2e_latency"]
     corpus = summary["mcp_corpus"]["heldout"]
     dev_corpus = summary["mcp_corpus"]["dev"]
-    azt = summary["azt_bench"]
+    azt = summary["zero_trust_agent_benchmark"]
     azt_metrics_map = azt.get("metrics", {})
     slices = azt_metrics_map.get("attack_policy_slices", {})
     in_policy = slices.get("in_policy", {})
@@ -415,25 +415,25 @@ def update_docs(summary: dict[str, Any]) -> None:
     )
     if "block_rate" in azt_metrics_map:
         table += (
-            f"| AZT-Bench test block rate | {azt_metrics_map['block_rate']['point']:.3f} | "
+            f"| Zero Trust Agent Benchmark test block rate | {azt_metrics_map['block_rate']['point']:.3f} | "
             f"{fmt_ci(azt_metrics_map['block_rate'])} |\n"
-            f"| AZT-Bench test false positives | {azt_metrics_map['false_positive_rate']['point']:.3f} | "
+            f"| Zero Trust Agent Benchmark test false positives | {azt_metrics_map['false_positive_rate']['point']:.3f} | "
             f"{fmt_ci(azt_metrics_map['false_positive_rate'])} |\n"
-            f"| AZT-Bench test leak rate | {azt_metrics_map['leak_rate']['point']:.3f} | "
+            f"| Zero Trust Agent Benchmark test leak rate | {azt_metrics_map['leak_rate']['point']:.3f} | "
             f"{fmt_ci(azt_metrics_map['leak_rate'])} |\n"
         )
     if in_policy:
         table += (
-            f"| AZT-Bench in-policy block rate | {in_policy['block_rate']['point']:.3f} | "
+            f"| Zero Trust Agent Benchmark in-policy block rate | {in_policy['block_rate']['point']:.3f} | "
             f"{fmt_ci(in_policy['block_rate'])} |\n"
-            f"| AZT-Bench in-policy leak rate | {in_policy['leak_rate']['point']:.3f} | "
+            f"| Zero Trust Agent Benchmark in-policy leak rate | {in_policy['leak_rate']['point']:.3f} | "
             f"{fmt_ci(in_policy['leak_rate'])} |\n"
         )
     if out_policy:
         table += (
-            f"| AZT-Bench out-of-policy block rate | {out_policy['block_rate']['point']:.3f} | "
+            f"| Zero Trust Agent Benchmark out-of-policy block rate | {out_policy['block_rate']['point']:.3f} | "
             f"{fmt_ci(out_policy['block_rate'])} |\n"
-            f"| AZT-Bench out-of-policy leak rate | {out_policy['leak_rate']['point']:.3f} | "
+            f"| Zero Trust Agent Benchmark out-of-policy leak rate | {out_policy['leak_rate']['point']:.3f} | "
             f"{fmt_ci(out_policy['leak_rate'])} |\n"
         )
     readme = Path("README.md").read_text(encoding="utf-8")
@@ -466,9 +466,9 @@ MCP corpus dev: `{json.dumps(dev_corpus, sort_keys=True)}`.
 
 MCP corpus held-out: `{json.dumps(corpus, sort_keys=True)}`.
 
-AZT-Bench test: `{json.dumps(azt.get("metrics", azt), sort_keys=True)}`.
+Zero Trust Agent Benchmark test: `{json.dumps(azt.get("metrics", azt), sort_keys=True)}`.
 
-AZT-Bench dataset: `{json.dumps(azt.get("dataset", {}), sort_keys=True)}`.
+Zero Trust Agent Benchmark dataset: `{json.dumps(azt.get("dataset", {}), sort_keys=True)}`.
 
 TLC: see `specs/tlc-output.txt` from the verified run.
 """,
@@ -552,7 +552,7 @@ def main() -> int:
             "dev": corpus_metrics(corpus_dev_path),
             "heldout": corpus_metrics(corpus_heldout_path),
         },
-        "azt_bench": azt_metrics(),
+        "zero_trust_agent_benchmark": azt_metrics(),
     }
     (out / "summary.json").write_text(
         json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8"
@@ -564,7 +564,7 @@ def main() -> int:
         "machine": platform.machine(),
         "host": socket.gethostname(),
         "git_sha": git_sha(),
-        "azt_bench": azt_dataset_metadata(),
+        "zero_trust_agent_benchmark": azt_dataset_metadata(),
     }
     (out / "env.json").write_text(
         json.dumps(env, indent=2, sort_keys=True) + "\n", encoding="utf-8"

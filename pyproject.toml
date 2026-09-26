@@ -3,7 +3,7 @@ requires = ["hatchling>=1.25"]
 build-backend = "hatchling.build"
 
 [project]
-name = "mcp-guard"
+name = "model-context-protocol-guard"
 version = "0.1.0"
 description = "Transparent deny-by-default security proxy for MCP servers"
 readme = "README.md"
@@ -37,19 +37,19 @@ dev = [
 ]
 
 [project.scripts]
-mcp-guard = "mcp_guard.cli:main"
+model-context-protocol-guard = "model_context_protocol_guard.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/mcp-guard-dev/mcp-guard"
-Issues = "https://github.com/mcp-guard-dev/mcp-guard/issues"
+Homepage = "https://github.com/model-context-protocol-guard/model-context-protocol-guard"
+Issues = "https://github.com/model-context-protocol-guard/model-context-protocol-guard/issues"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/mcp_guard"]
+packages = ["src/model_context_protocol_guard"]
 
 [tool.ruff]
 line-length = 100
 target-version = "py312"
-extend-exclude = ["src/mcp_guard/stats.py"]
+extend-exclude = ["src/model_context_protocol_guard/stats.py"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "S", "SIM", "RUF"]
@@ -57,12 +57,12 @@ select = ["E", "F", "W", "I", "B", "UP", "S", "SIM", "RUF"]
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101", "S105", "S106", "S603", "S607"]
 "bench/**" = ["S101", "S311", "S607", "T201", "E501"]
-"src/mcp_guard/stats.py" = ["S311", "E231", "E501", "RUF022"]
-"src/mcp_guard/transports/stdio.py" = ["S603"]
-"src/mcp_guard/pinning.py" = ["S324"]
-"src/mcp_guard/audit.py" = ["S324"]
-"src/mcp_guard/tokens.py" = ["S324"]
-"src/mcp_guard/corpus.py" = ["S311"]
+"src/model_context_protocol_guard/stats.py" = ["S311", "E231", "E501", "RUF022"]
+"src/model_context_protocol_guard/transports/stdio.py" = ["S603"]
+"src/model_context_protocol_guard/pinning.py" = ["S324"]
+"src/model_context_protocol_guard/audit.py" = ["S324"]
+"src/model_context_protocol_guard/tokens.py" = ["S324"]
+"src/model_context_protocol_guard/corpus.py" = ["S311"]
 
 [tool.mypy]
 strict = true
@@ -81,8 +81,8 @@ asyncio_mode = "auto"
 
 [tool.coverage.run]
 branch = true
-source = ["mcp_guard"]
-omit = ["src/mcp_guard/stats.py"]
+source = ["model_context_protocol_guard"]
+omit = ["src/model_context_protocol_guard/stats.py"]
 
 [tool.coverage.report]
 exclude_lines = ["pragma: no cover", "if __name__ == .__main__.:", "raise NotImplementedError"]
