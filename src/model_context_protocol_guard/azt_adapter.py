@@ -20,6 +20,7 @@ from .screening import CONTROL_TOKEN_RE, CREDENTIAL_RE, screen_description
 
 BAD_SVID = {"expired", "wrong_trust_domain", "missing", "forged", "revoked"}
 BAD_ATTESTATION = {"stale", "pcr_mismatch", "missing", "replayed_nonce", "bad_signature"}
+BAD_TRUST_HISTORY = {"malicious", "suspicious", "unknown"}
 SECRET_SHAPE_RE = re.compile(
     r"AKIA[0-9A-Z]{8,}|sk[_-][A-Za-z0-9_=-]{12,}|ghp_[A-Za-z0-9_=-]{12,}",
     re.IGNORECASE,
@@ -46,24 +47,9 @@ INSTRUCTION_OVERRIDE_RE = re.compile(
 )
 PRIVILEGE_ESCALATION_RE = re.compile(
     r"\b(?:admin|owner|root|sudo|privilege|permission|scope)\b"
-    r".{0,80}\b(?:grant|escalat|required|needed|bypass|override)\b|"
+    r".{0,80}\b(?:grant|escalat|bypass|override)\b|"
     r"\b(?:grant|escalat|bypass|override)\b"
     r".{0,80}\b(?:admin|owner|root|sudo|privilege|permission|scope)\b",
-    re.IGNORECASE | re.DOTALL,
-)
-DATA_REDIRECT_RE = re.compile(
-    r"\b(?:upload|export|forward|share|send|post|copy|message|email|redirect)\b"
-    r".{0,120}\b(?:workspace|evidence|diagnostic|digest|timeline|metric|summary|note|data|"
-    r"external|outside|drop\s+box)\b|"
-    r"\b(?:external|outside|drop\s+box)\b"
-    r".{0,120}\b(?:workspace|evidence|diagnostic|digest|timeline|metric|summary|note|data)\b",
-    re.IGNORECASE | re.DOTALL,
-)
-INVALID_POSTURE_CONTEXT_RE = re.compile(
-    r"\b(?:revoked|expired|forged|stale|replayed|invalid|weak|suspect|outside\s+the\s+trust\s+domain)\b"
-    r".{0,100}\b(?:identity|attestation|posture|evidence|trust|svid|spiffe|operation|access)\b|"
-    r"\b(?:identity|attestation|posture|evidence|trust|svid|spiffe)\b"
-    r".{0,100}\b(?:revoked|expired|forged|stale|replayed|invalid|weak|suspect|fail)\b",
     re.IGNORECASE | re.DOTALL,
 )
 HIGH_ENTROPY_TOKEN_RE = re.compile(r"\b[A-Za-z0-9_-]{20,}\b")
@@ -96,6 +82,10 @@ class MCPGuardDefense:
             return _deny("bad attestation", "identity")
         if not _valid_spiffe_id(agent, str(profile.get("trust_domain", ""))):
             return _deny("SPIFFE trust domain mismatch", "identity")
+        if BAD_TRUST_HISTORY.intersection(
+            str(item).lower() for item in agent.get("trust_history", [])
+        ):
+            return _deny("bad structured trust history", "identity")
 
         tool = str(request.get("tool") or "")
         context = dict(request.get("context") or {})
@@ -110,8 +100,6 @@ class MCPGuardDefense:
         origin = str(context.get("origin", ""))
         if _looks_like_shell(args) and _dangerous_shell(args):
             return _deny("dangerous command invocation", "tool")
-        if _invalid_posture_context(context) and risk in {"high", "critical"}:
-            return _deny("context describes invalid identity or attestation posture", "identity")
         if origin != "user" and (
             _suspicious_context(context)
             or _untrusted_context_external_destination(
@@ -238,12 +226,7 @@ def _suspicious_context(context: dict[str, Any]) -> bool:
         INSTRUCTION_OVERRIDE_RE.search(text)
         or SECRET_EXFIL_RE.search(text)
         or PRIVILEGE_ESCALATION_RE.search(text)
-        or DATA_REDIRECT_RE.search(text)
     )
-
-
-def _invalid_posture_context(context: dict[str, Any]) -> bool:
-    return bool(INVALID_POSTURE_CONTEXT_RE.search(_context_text(context)))
 
 
 def _untrusted_context_external_destination(

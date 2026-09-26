@@ -314,6 +314,16 @@ def test_azt_adapter_branch_coverage() -> None:
     assert d.decide(bad_svid)["component"] == "identity"
     bad_attest = dict(base, agent={"svid": "valid", "attestation": "missing", "scopes": []})
     assert d.decide(bad_attest)["component"] == "identity"
+    bad_history = dict(
+        base,
+        agent={
+            "svid": "valid",
+            "attestation": "valid",
+            "trust_history": ["suspicious"],
+            "scopes": [],
+        },
+    )
+    assert d.decide(bad_history)["component"] == "identity"
     no_scope = dict(base, agent={"svid": "valid", "attestation": "valid", "scopes": []})
     assert d.decide(no_scope)["component"] == "capability"
     control = dict(
@@ -400,17 +410,20 @@ def test_azt_adapter_new_security_branches() -> None:
         agent={**base_agent, "spiffe_id": "spiffe://other.test/agent/a"},
     )
     assert d.decide(bad_spiffe)["component"] == "identity"
-    invalid_posture = dict(
+    narrative_only = dict(
         base,
         tool="secrets.get",
         args={"resource": "prod/a"},
         context={
             "origin": "user",
             "tool_description": "Get secret",
-            "content": "identity posture is invalid for this access",
+            "content": (
+                "The note mentions posture evidence, diagnostic digests, a timeline, "
+                "and a private drop box, but supplies no structured failure."
+            ),
         },
     )
-    assert d.decide(invalid_posture)["component"] == "identity"
+    assert d.decide(narrative_only)["decision"] == "allow"
     redirected = dict(
         allowed_mail,
         context={
