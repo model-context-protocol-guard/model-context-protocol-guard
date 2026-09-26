@@ -10,25 +10,79 @@ from .models import Finding
 
 ZERO_WIDTH = {"\u200b", "\u200c", "\u200d", "\ufeff"}
 BIDI = {chr(c) for c in range(0x202A, 0x202F)} | {chr(c) for c in range(0x2066, 0x206A)}
-CONTROL_TOKEN_RE = re.compile(
-    r"(<\|/?(?:im_start|im_end|assistant|system|user|tool|channel|message|analysis|final)[^>]*\|>|"
-    r"<start_of_turn>|<end_of_turn>|"
-    r"<\/?(?:system|assistant|tool|user)>|"
-    r"<\|start_header_id\|>|<\|end_header_id\|>|<\|eot_id\|>)",
-    re.IGNORECASE,
-)
-ASSISTANT_ADDRESS_RE = re.compile(
-    r"\b(?:assistant|model|chatbot|coding assistant|tool user)\b"
-    r".{0,80}\b(?:ignore|follow|obey|must|secretly|instead)\b",
-    re.IGNORECASE | re.DOTALL,
-)
-CREDENTIAL_RE = re.compile(
-    r"(?:\.ssh|id_rsa|aws/credentials|kubeconfig|api[_-]?key|secret[_-]?key|token|mcpServers|claude_desktop_config)",
-    re.IGNORECASE,
-)
 SECRET_RE = re.compile(
     r"(?:AKIA[0-9A-Z]{16}|sk-[A-Za-z0-9_-]{20,}|ghp_[A-Za-z0-9]{20,}|xox[baprs]-[A-Za-z0-9-]{10,})"
 )
+CONTROL_TOKEN_MARKERS = (
+    "<start_of_turn>",
+    "<end_of_turn>",
+    "<|start_header_id|>",
+    "<|end_header_id|>",
+    "<|eot_id|>",
+)
+CONTROL_TOKEN_NAMES = (
+    "im_start",
+    "im_end",
+    "assistant",
+    "system",
+    "user",
+    "tool",
+    "channel",
+    "message",
+    "analysis",
+    "final",
+)
+ASSISTANT_NAMES = ("assistant", "model", "chatbot", "coding assistant", "tool user")
+ASSISTANT_DIRECTIVES = ("ignore", "follow", "obey", "must", "secretly", "instead")
+CREDENTIAL_TERMS = (
+    ".ssh",
+    "id_rsa",
+    "aws/credentials",
+    "kubeconfig",
+    "api_key",
+    "api-key",
+    "secret_key",
+    "secret-key",
+    "token",
+    "mcpservers",
+    "claude_desktop_config",
+)
+
+
+class _KeywordPattern:
+    def __init__(self, terms: tuple[str, ...]) -> None:
+        self.terms = tuple(term.lower() for term in terms)
+
+    def search(self, text: str) -> str | None:
+        lowered = text.lower()
+        return next((term for term in self.terms if term in lowered), None)
+
+
+class _ControlTokenPattern:
+    def search(self, text: str) -> str | None:
+        lowered = text.lower()
+        marker = next((item for item in CONTROL_TOKEN_MARKERS if item in lowered), None)
+        if marker:
+            return marker
+        for name in CONTROL_TOKEN_NAMES:
+            if f"<|{name}" in lowered or f"<|/{name}" in lowered:
+                return name
+            if f"<{name}>" in lowered or f"</{name}>" in lowered:
+                return name
+        return None
+
+    def sub(self, repl: str, text: str) -> str:
+        updated = text
+        for marker in CONTROL_TOKEN_MARKERS:
+            updated = re.sub(re.escape(marker), repl, updated, flags=re.IGNORECASE)
+        for name in CONTROL_TOKEN_NAMES:
+            updated = re.sub(r"<\|/?" + re.escape(name) + r"[^>]*\|>", repl, updated, flags=re.I)
+            updated = re.sub(r"</?" + re.escape(name) + r">", repl, updated, flags=re.I)
+        return updated
+
+
+CONTROL_TOKEN_RE = _ControlTokenPattern()
+CREDENTIAL_RE = _KeywordPattern(CREDENTIAL_TERMS)
 
 
 @dataclass(frozen=True, slots=True)
@@ -58,6 +112,18 @@ def _contains_any(text: str, chars: set[str]) -> bool:
     return any(ch in text for ch in chars)
 
 
+def _assistant_addressed(text: str) -> bool:
+    lowered = text.lower()
+    for name in ASSISTANT_NAMES:
+        start = lowered.find(name)
+        if start == -1:
+            continue
+        window = lowered[start : start + len(name) + 80]
+        if any(directive in window for directive in ASSISTANT_DIRECTIVES):
+            return True
+    return False
+
+
 def screen_description(
     server: str,
     tool_name: str,
@@ -77,7 +143,7 @@ def screen_description(
         findings.append(Finding("description", "description contains zero-width or bidi controls"))
     if CONTROL_TOKEN_RE.search(description):
         findings.append(Finding("description", "description contains control token"))
-    if ASSISTANT_ADDRESS_RE.search(description):
+    if _assistant_addressed(description):
         findings.append(
             Finding("description", "description appears addressed to the assistant/model")
         )

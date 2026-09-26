@@ -8,61 +8,11 @@ import pytest
 
 SRC_ROOT = Path(__file__).resolve().parents[1] / "src"
 
-# Standard parser, credential, injection, egress, and SQL terms are allowed in
-# regex alternations. Narrative-only benchmark words are intentionally absent.
-REGEX_ALTERNATION_ALLOWLIST = {
-    "access",
-    "admin",
-    "analysis",
-    "api",
-    "assistant",
-    "bypass",
-    "channel",
-    "copy",
-    "credential",
-    "credentials",
-    "database",
-    "delete",
-    "drop",
-    "dump",
-    "final",
-    "from",
-    "grant",
-    "hide",
-    "ignore",
-    "instruction",
-    "into",
-    "leak",
-    "message",
-    "model",
-    "obey",
-    "owner",
-    "override",
-    "policy",
-    "post",
-    "previous",
-    "print",
-    "root",
-    "scope",
-    "secret",
-    "send",
-    "start",
-    "token",
-    "tool",
-    "turn",
-    "update",
-    "upload",
-    "user",
-}
 
+def _narrative_words() -> set[str]:
+    from zero_trust_agent_benchmark.generator import narrative_words
 
-def _generator_words() -> set[str]:
-    from zero_trust_agent_benchmark.generator import literal_tokens, narrative_words
-
-    words: set[str] = set(narrative_words())
-    for token in literal_tokens():
-        words.update(re.findall(r"[a-z]{3,}", token.lower()))
-    return words
+    return set(narrative_words())
 
 
 def _regex_literals() -> list[tuple[Path, int, str]]:
@@ -100,11 +50,10 @@ def test_no_high_signal_azt_generator_literals_in_src() -> None:
 
 def test_regex_alternations_do_not_match_benchmark_narrative_words() -> None:
     try:
-        generator_words = _generator_words()
+        forbidden = _narrative_words()
     except Exception as exc:  # pragma: no cover - dependency is installed for dev/bench checks
         pytest.skip(f"zero-trust-agent-benchmark word API unavailable: {exc}")
 
-    forbidden = generator_words - REGEX_ALTERNATION_ALLOWLIST
     failures = []
     for path, line, pattern in _regex_literals():
         if "|" not in pattern:

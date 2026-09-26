@@ -1,0 +1,855 @@
+{
+  "definition_change_detection": {
+    "count": 100,
+    "high": 1.0,
+    "low": 0.9630065017930143,
+    "n": 100,
+    "point": 1.0
+  },
+  "e2e_latency": {
+    "background_load_note": "Measured on a normal developer workstation with Windows Defender and other background services left enabled.",
+    "calls_per_session": 200,
+    "http": {
+      "tools/call": {
+        "direct": {
+          "p50_ci_ms": {
+            "high": 0.7112525000000001,
+            "low": 0.69882375,
+            "point": 0.706
+          },
+          "p50_ms": 0.706,
+          "p95_ci_ms": {
+            "high": 1.0785331249999996,
+            "low": 0.9644999999999997,
+            "point": 1.0078949999999995
+          },
+          "p95_ms": 1.0078949999999995,
+          "p99_ci_ms": {
+            "high": 1.7538,
+            "low": 1.3318654749999996,
+            "point": 1.5840699999999999
+          },
+          "p99_ms": 1.5840699999999999
+        },
+        "guarded": {
+          "p50_ci_ms": {
+            "high": 0.74815,
+            "low": 0.7281237500000001,
+            "point": 0.7371
+          },
+          "p50_ms": 0.7371,
+          "p95_ci_ms": {
+            "high": 1.2251,
+            "low": 1.10957625,
+            "point": 1.148905
+          },
+          "p95_ms": 1.148905,
+          "p99_ci_ms": {
+            "high": 1.8188934999999995,
+            "low": 1.4251165999999995,
+            "point": 1.6549709999999997
+          },
+          "p99_ms": 1.6549709999999997
+        },
+        "overhead": {
+          "mean_ci_ms": {
+            "high": 0.06111511641252168,
+            "low": 0.005866683587478317,
+            "point": 0.0334909
+          },
+          "p50_ci_ms": {
+            "high": 0.026081249999999983,
+            "low": 0.007673750000000043,
+            "point": 0.016199999999999992
+          },
+          "p50_ms": 0.016199999999999992,
+          "p95_ci_ms": {
+            "high": 0.5055999999999999,
+            "low": 0.38925462499999997,
+            "point": 0.42873499999999976
+          },
+          "p95_ms": 0.42873499999999976,
+          "p99_ci_ms": {
+            "high": 1.1273580749999994,
+            "low": 0.6843633499999993,
+            "point": 0.7870469999999995
+          },
+          "p99_ms": 0.7870469999999995
+        },
+        "sessions": [
+          {
+            "direct_p50_ms": 0.72515,
+            "direct_p95_ms": 1.2163349999999997,
+            "direct_p99_ms": 1.6270359999999995,
+            "guarded_p50_ms": 0.8004,
+            "guarded_p95_ms": 1.0312499999999998,
+            "guarded_p99_ms": 1.362623999999997,
+            "overhead_p50_ms": 0.06590000000000001,
+            "overhead_p95_ms": 0.28361499999999995,
+            "overhead_p99_ms": 0.40975199999999884,
+            "session": 1
+          },
+          {
+            "direct_p50_ms": 0.7215499999999999,
+            "direct_p95_ms": 1.0372949999999996,
+            "direct_p99_ms": 1.7235759999999998,
+            "guarded_p50_ms": 0.6981999999999999,
+            "guarded_p95_ms": 1.0208,
+            "guarded_p99_ms": 1.4471169999999987,
+            "overhead_p50_ms": -0.011899999999999966,
+            "overhead_p95_ms": 0.29556,
+            "overhead_p99_ms": 0.7870469999999995,
+            "session": 2
+          },
+          {
+            "direct_p50_ms": 0.71255,
+            "direct_p95_ms": 0.9230700000000001,
+            "direct_p99_ms": 1.7606589999999938,
+            "guarded_p50_ms": 0.6711,
+            "guarded_p95_ms": 1.0147099999999991,
+            "guarded_p99_ms": 1.4842419999999998,
+            "overhead_p50_ms": -0.029049999999999965,
+            "overhead_p95_ms": 0.2629349999999996,
+            "overhead_p99_ms": 0.5651959999999987,
+            "session": 3
+          },
+          {
+            "direct_p50_ms": 0.6565000000000001,
+            "direct_p95_ms": 0.83962,
+            "direct_p99_ms": 1.2026679999999983,
+            "guarded_p50_ms": 0.68355,
+            "guarded_p95_ms": 1.0434999999999997,
+            "guarded_p99_ms": 1.4095569999999966,
+            "overhead_p50_ms": 0.02744999999999992,
+            "overhead_p95_ms": 0.39316999999999985,
+            "overhead_p99_ms": 0.6796539999999965,
+            "session": 4
+          },
+          {
+            "direct_p50_ms": 0.7214,
+            "direct_p95_ms": 1.0191949999999994,
+            "direct_p99_ms": 1.3316749999999997,
+            "guarded_p50_ms": 0.9077500000000001,
+            "guarded_p95_ms": 1.3728249999999995,
+            "guarded_p99_ms": 1.963350999999993,
+            "overhead_p50_ms": 0.11664999999999998,
+            "overhead_p95_ms": 0.619215,
+            "overhead_p99_ms": 1.3710759999999957,
+            "session": 5
+          }
+        ]
+      }
+    },
+    "rule": "H1 passes only when the pooled stdio tools/call overhead p95 95% bootstrap CI upper bound is at most 5 ms.",
+    "session_count": 5,
+    "stdio": {
+      "tools/call": {
+        "direct": {
+          "p50_ci_ms": {
+            "high": 0.0563,
+            "low": 0.054,
+            "point": 0.0551
+          },
+          "p50_ms": 0.0551,
+          "p95_ci_ms": {
+            "high": 0.1303,
+            "low": 0.1102,
+            "point": 0.11884999999999996
+          },
+          "p95_ms": 0.11884999999999996,
+          "p99_ci_ms": {
+            "high": 0.3395,
+            "low": 0.18623199999999998,
+            "point": 0.21585499999999994
+          },
+          "p99_ms": 0.21585499999999994
+        },
+        "guarded": {
+          "p50_ci_ms": {
+            "high": 0.2759,
+            "low": 0.2538,
+            "point": 0.26375000000000004
+          },
+          "p50_ms": 0.26375000000000004,
+          "p95_ci_ms": {
+            "high": 0.5532707499999999,
+            "low": 0.47964324999999997,
+            "point": 0.5173599999999996
+          },
+          "p95_ms": 0.5173599999999996,
+          "p99_ci_ms": {
+            "high": 0.8818999999999999,
+            "low": 0.6585367249999999,
+            "point": 0.8264549999999999
+          },
+          "p99_ms": 0.8264549999999999
+        },
+        "overhead": {
+          "mean_ci_ms": {
+            "high": 0.25060219529718836,
+            "low": 0.23300480470281165,
+            "point": 0.2418035
+          },
+          "p50_ci_ms": {
+            "high": 0.21591,
+            "low": 0.19392375,
+            "point": 0.2011
+          },
+          "p50_ms": 0.2011,
+          "p95_ci_ms": {
+            "high": 0.49230499999999994,
+            "low": 0.41623999999999967,
+            "point": 0.4600549999999999
+          },
+          "p95_ms": 0.4600549999999999,
+          "p99_ci_ms": {
+            "high": 0.8302079999999998,
+            "low": 0.6072787749999998,
+            "point": 0.7084609999999996
+          },
+          "p99_ms": 0.7084609999999996
+        },
+        "sessions": [
+          {
+            "direct_p50_ms": 0.0509,
+            "direct_p95_ms": 0.081825,
+            "direct_p99_ms": 0.12739199999999992,
+            "guarded_p50_ms": 0.34345000000000003,
+            "guarded_p95_ms": 0.5625049999999996,
+            "guarded_p99_ms": 0.8296709999999969,
+            "overhead_p50_ms": 0.29505000000000003,
+            "overhead_p95_ms": 0.5058949999999998,
+            "overhead_p99_ms": 0.7675339999999968,
+            "session": 1
+          },
+          {
+            "direct_p50_ms": 0.0537,
+            "direct_p95_ms": 0.10307499999999988,
+            "direct_p99_ms": 0.14285899999999985,
+            "guarded_p50_ms": 0.39115,
+            "guarded_p95_ms": 0.649185,
+            "guarded_p99_ms": 0.8857189999999964,
+            "overhead_p50_ms": 0.33495,
+            "overhead_p95_ms": 0.59868,
+            "overhead_p99_ms": 0.8339589999999965,
+            "session": 2
+          },
+          {
+            "direct_p50_ms": 0.05135,
+            "direct_p95_ms": 0.09775499999999968,
+            "direct_p99_ms": 0.14068299999999992,
+            "guarded_p50_ms": 0.23099999999999998,
+            "guarded_p95_ms": 0.45014999999999983,
+            "guarded_p99_ms": 0.5858019999999998,
+            "overhead_p50_ms": 0.175,
+            "overhead_p95_ms": 0.37617999999999957,
+            "overhead_p99_ms": 0.46937099999999926,
+            "session": 3
+          },
+          {
+            "direct_p50_ms": 0.07095,
+            "direct_p95_ms": 0.19221999999999992,
+            "direct_p99_ms": 0.4066529999999995,
+            "guarded_p50_ms": 0.21034999999999998,
+            "guarded_p95_ms": 0.3429549999999999,
+            "guarded_p99_ms": 0.4730819999999999,
+            "overhead_p50_ms": 0.13884999999999997,
+            "overhead_p95_ms": 0.224305,
+            "overhead_p99_ms": 0.3513159999999995,
+            "session": 4
+          },
+          {
+            "direct_p50_ms": 0.05275,
+            "direct_p95_ms": 0.12144499999999984,
+            "direct_p99_ms": 0.21822899999999779,
+            "guarded_p50_ms": 0.23625000000000002,
+            "guarded_p95_ms": 0.437235,
+            "guarded_p99_ms": 0.6402079999999998,
+            "overhead_p50_ms": 0.17915,
+            "overhead_p95_ms": 0.35798499999999955,
+            "overhead_p99_ms": 0.5932929999999997,
+            "session": 5
+          }
+        ]
+      }
+    }
+  },
+  "mcp_corpus": {
+    "dev": {
+      "attacks": 220,
+      "benign": 220,
+      "detection": {
+        "count": 220,
+        "high": 1.0,
+        "low": 0.9828384838048643,
+        "n": 220,
+        "point": 1.0
+      },
+      "false_positive": {
+        "count": 0,
+        "high": 0.01716151619513562,
+        "low": 0.0,
+        "n": 220,
+        "point": 0.0
+      }
+    },
+    "heldout": {
+      "attacks": 220,
+      "benign": 220,
+      "detection": {
+        "count": 220,
+        "high": 1.0,
+        "low": 0.9828384838048643,
+        "n": 220,
+        "point": 1.0
+      },
+      "false_positive": {
+        "count": 0,
+        "high": 0.01716151619513562,
+        "low": 0.0,
+        "n": 220,
+        "point": 0.0
+      }
+    }
+  },
+  "pipeline_microbench": {
+    "http_call_added_ms": {
+      "mean_ci_ms": {
+        "high": 0.003585473831049801,
+        "low": 0.003428526168950199,
+        "point": 0.003507
+      },
+      "p50_ms": 0.0035,
+      "p95_ci_ms": {
+        "high": 0.003909999999999999,
+        "low": 0.0037,
+        "point": 0.0039
+      },
+      "p95_ms": 0.0039,
+      "p99_ms": 0.0041010000000000005
+    },
+    "stdio_call_added_ms": {
+      "mean_ci_ms": {
+        "high": 0.0061133874231434045,
+        "low": 0.005368612576856595,
+        "point": 0.005741
+      },
+      "p50_ms": 0.0052499999999999995,
+      "p95_ci_ms": {
+        "high": 0.010704999999999994,
+        "low": 0.007463249999999996,
+        "point": 0.0092
+      },
+      "p95_ms": 0.0092,
+      "p99_ms": 0.012731000000000015
+    },
+    "stdio_list_added_ms": {
+      "mean_ci_ms": {
+        "high": 0.05056660771370028,
+        "low": 0.030797392286299727,
+        "point": 0.040682
+      },
+      "p50_ms": 0.033,
+      "p95_ci_ms": {
+        "high": 0.0861,
+        "low": 0.045544999999999974,
+        "point": 0.06172
+      },
+      "p95_ms": 0.06172,
+      "p99_ms": 0.10549100000000214
+    }
+  },
+  "run": {
+    "timestamp_utc": "2026-09-26T16:25:48Z",
+    "trials": 100
+  },
+  "token_verify_ms": {
+    "mean_ci_ms": {
+      "high": 0.05219915572310507,
+      "low": 0.02722884427689493,
+      "point": 0.039714
+    },
+    "p50_ms": 0.02825,
+    "p95_ci_ms": {
+      "high": 0.2039,
+      "low": 0.0375,
+      "point": 0.05374999999999996
+    },
+    "p95_ms": 0.05374999999999996,
+    "p99_ms": 0.44846300000000006
+  },
+  "zero_trust_agent_benchmark": {
+    "counts": {
+      "attack_traces": 500,
+      "benign_traces": 500,
+      "blocked_attacks": 455,
+      "false_positives": 80,
+      "in_policy_attack_traces": 250,
+      "leaking_traces": 0,
+      "out_of_policy_attack_traces": 250,
+      "steps": 2000,
+      "traces": 1000
+    },
+    "dataset": {
+      "dataset_version": "zero-trust-agent-benchmark-dataset-v4",
+      "profile_version": "zero-trust-agent-benchmark-profile-v4",
+      "test_jsonl_sha256": "4f6fff41fe77aefb2ec96336b65a58d571986e0036ac3e368cc9975ed029dfc7",
+      "trace_file": "../zero-trust-agent-benchmark/traces/test.jsonl"
+    },
+    "errors": 0,
+    "failures": {
+      "false_positives": [
+        "t-acbc11b6ac6d",
+        "t-49bbeda3690b",
+        "t-7a2cdf756175",
+        "t-305ac783e12e",
+        "t-7aa3f0070d91",
+        "t-be8242b27890",
+        "t-af81abe2f576",
+        "t-b324637a9a43",
+        "t-a776cdc07ed2",
+        "t-b390cc65b2f2",
+        "t-368259ad7cd7",
+        "t-cf7f4afac0b4",
+        "t-08c73b1ab409",
+        "t-9206d9e28d20",
+        "t-004cbb5563b4",
+        "t-8fd530d9ddcd",
+        "t-da427dc80682",
+        "t-547a850d254f",
+        "t-862c0150555d",
+        "t-8afd4615df92",
+        "t-300f5a6fba19",
+        "t-6591dc30acdd",
+        "t-ce20725d97ed",
+        "t-d9cd8c62d66c",
+        "t-862456a6b5d8",
+        "t-9e4ac20e5e96",
+        "t-f185f52fd35a",
+        "t-44dabf1043ec",
+        "t-da5a42ba3ff3",
+        "t-a152e678148b",
+        "t-67bd55850eca",
+        "t-3b73996efd2e",
+        "t-34dbcc89d824",
+        "t-5807bed5619f",
+        "t-fdf612d52b07",
+        "t-e2c2d1354ecc",
+        "t-d2898a1f7409",
+        "t-e4f692f62d10",
+        "t-fbc178b61307",
+        "t-07b3cfaccdb7",
+        "t-f2c53e0e7f49",
+        "t-3d06cc032af5",
+        "t-134aa7663875",
+        "t-eec70e848134",
+        "t-fb9fd62cc3dc",
+        "t-4ab5051c6084",
+        "t-21cc1156150f",
+        "t-cc27f7d7a30a",
+        "t-ba93c45913d7",
+        "t-71590aae401c",
+        "t-166b3bfa033a",
+        "t-aa2716954e81",
+        "t-cb3a46819a63",
+        "t-c4178fcabd94",
+        "t-8acb45ddb76f",
+        "t-bb11726339e8",
+        "t-01f5d871855d",
+        "t-c83969348d41",
+        "t-6d4cc5b08885",
+        "t-faf05441a0f5",
+        "t-7f55d56b02cf",
+        "t-1d89356cabd1",
+        "t-5e0f25aacd1f",
+        "t-11a10f4cf8b6",
+        "t-6299c774b9bb",
+        "t-18c456e214b6",
+        "t-a1574970380b",
+        "t-a2e8573ff065",
+        "t-3180bf55572d",
+        "t-4326fa045df0",
+        "t-2656cbd616ff",
+        "t-ef6af3535bd6",
+        "t-bda6a481b5b4",
+        "t-fff58d4d0950",
+        "t-f09de015194f",
+        "t-e65e1d2b2f80",
+        "t-efeb521db6d0",
+        "t-fb8774343ac6",
+        "t-d9c827d33810",
+        "t-dc5ec8a41548"
+      ],
+      "leaking_traces": [],
+      "unblocked_attacks": [
+        "t-2595c1410bdb",
+        "t-c849bc9d5a76",
+        "t-ab8e089bba47",
+        "t-c9b97bfe0f95",
+        "t-7259f7e4705f",
+        "t-2059afbb55e5",
+        "t-f8b38528d4c7",
+        "t-a72e442ae3f4",
+        "t-dbedf0c59fa4",
+        "t-a9b8e0ef2be7",
+        "t-3e98f8a0dae9",
+        "t-781d8132e9d4",
+        "t-05c366beec7e",
+        "t-8a905311fdbe",
+        "t-a49bf3c03c5c",
+        "t-53fe0ae4a11c",
+        "t-228e8bfb5dd8",
+        "t-9a7158eaf782",
+        "t-608897bdf871",
+        "t-5b08476a2ac9",
+        "t-212a0cfff276",
+        "t-f12957635349",
+        "t-b447a4db61e0",
+        "t-257c9709c0a1",
+        "t-0cb6e25b48c4",
+        "t-5ea183eeaaca",
+        "t-eb3c5d5c2595",
+        "t-2896e258b078",
+        "t-d61fdcebb9e1",
+        "t-f65833d47770",
+        "t-9f6da803fab9",
+        "t-5570cb2d2d48",
+        "t-333cccd52a51",
+        "t-61ee59bf9aea",
+        "t-c728b42bea35",
+        "t-c68a12657483",
+        "t-a90459403a98",
+        "t-5bc2fc37e895",
+        "t-4e2f2b96d07a",
+        "t-943c3453b9a8",
+        "t-2e174b8d8a26",
+        "t-58cdc6fdee7a",
+        "t-4fb672da499e",
+        "t-60b67e507ac2",
+        "t-752d379fc286"
+      ]
+    },
+    "families": {
+      "benign_devops": {
+        "leaks": {
+          "count": 0,
+          "high": 0.05132795219689034,
+          "low": 0.0,
+          "n": 71,
+          "point": 0.0
+        },
+        "success": {
+          "count": 18,
+          "high": 0.36553925353561006,
+          "low": 0.1668055116318711,
+          "n": 71,
+          "point": 0.2535211267605634
+        },
+        "total": 71
+      },
+      "benign_email": {
+        "leaks": {
+          "count": 0,
+          "high": 0.05065117259645781,
+          "low": 0.0,
+          "n": 72,
+          "point": 0.0
+        },
+        "success": {
+          "count": 72,
+          "high": 1.0,
+          "low": 0.9493488274035422,
+          "n": 72,
+          "point": 1.0
+        },
+        "total": 72
+      },
+      "benign_files": {
+        "leaks": {
+          "count": 0,
+          "high": 0.05065117259645781,
+          "low": 0.0,
+          "n": 72,
+          "point": 0.0
+        },
+        "success": {
+          "count": 72,
+          "high": 1.0,
+          "low": 0.9493488274035422,
+          "n": 72,
+          "point": 1.0
+        },
+        "total": 72
+      },
+      "benign_hard_negative": {
+        "leaks": {
+          "count": 0,
+          "high": 0.05132795219689034,
+          "low": 0.0,
+          "n": 71,
+          "point": 0.0
+        },
+        "success": {
+          "count": 44,
+          "high": 0.7237282654806456,
+          "low": 0.5034185628665777,
+          "n": 71,
+          "point": 0.6197183098591549
+        },
+        "total": 71
+      },
+      "benign_mcp": {
+        "leaks": {
+          "count": 0,
+          "high": 0.05132795219689034,
+          "low": 0.0,
+          "n": 71,
+          "point": 0.0
+        },
+        "success": {
+          "count": 71,
+          "high": 1.0,
+          "low": 0.9486720478031097,
+          "n": 71,
+          "point": 1.0
+        },
+        "total": 71
+      },
+      "benign_research": {
+        "leaks": {
+          "count": 0,
+          "high": 0.05065117259645781,
+          "low": 0.0,
+          "n": 72,
+          "point": 0.0
+        },
+        "success": {
+          "count": 72,
+          "high": 1.0,
+          "low": 0.9493488274035422,
+          "n": 72,
+          "point": 1.0
+        },
+        "total": 72
+      },
+      "benign_secrets": {
+        "leaks": {
+          "count": 0,
+          "high": 0.05132795219689034,
+          "low": 0.0,
+          "n": 71,
+          "point": 0.0
+        },
+        "success": {
+          "count": 71,
+          "high": 1.0,
+          "low": 0.9486720478031097,
+          "n": 71,
+          "point": 1.0
+        },
+        "total": 71
+      },
+      "control_token": {
+        "leaks": {
+          "count": 0,
+          "high": 0.06017185214208986,
+          "low": 0.0,
+          "n": 60,
+          "point": 0.0
+        },
+        "success": {
+          "count": 60,
+          "high": 1.0,
+          "low": 0.93982814785791,
+          "n": 60,
+          "point": 1.0
+        },
+        "total": 60
+      },
+      "data_exfil": {
+        "leaks": {
+          "count": 0,
+          "high": 0.03699349820698568,
+          "low": 0.0,
+          "n": 100,
+          "point": 0.0
+        },
+        "success": {
+          "count": 100,
+          "high": 1.0,
+          "low": 0.9630065017930143,
+          "n": 100,
+          "point": 1.0
+        },
+        "total": 100
+      },
+      "parser_confusion": {
+        "leaks": {
+          "count": 0,
+          "high": 0.08762160119728664,
+          "low": 0.0,
+          "n": 40,
+          "point": 0.0
+        },
+        "success": {
+          "count": 40,
+          "high": 1.0,
+          "low": 0.9123783988027134,
+          "n": 40,
+          "point": 1.0
+        },
+        "total": 40
+      },
+      "priv_esc": {
+        "leaks": {
+          "count": 0,
+          "high": 0.04093562556432678,
+          "low": 0.0,
+          "n": 90,
+          "point": 0.0
+        },
+        "success": {
+          "count": 75,
+          "high": 0.8963151126568702,
+          "low": 0.7430611369669119,
+          "n": 90,
+          "point": 0.8333333333333334
+        },
+        "total": 90
+      },
+      "prompt_injection": {
+        "leaks": {
+          "count": 0,
+          "high": 0.04093562556432678,
+          "low": 0.0,
+          "n": 90,
+          "point": 0.0
+        },
+        "success": {
+          "count": 66,
+          "high": 0.8137618126176642,
+          "low": 0.6338015621189832,
+          "n": 90,
+          "point": 0.7333333333333333
+        },
+        "total": 90
+      },
+      "tool_hijack": {
+        "leaks": {
+          "count": 0,
+          "high": 0.06017185214208986,
+          "low": 0.0,
+          "n": 60,
+          "point": 0.0
+        },
+        "success": {
+          "count": 54,
+          "high": 0.9533571655261158,
+          "low": 0.7985053527602124,
+          "n": 60,
+          "point": 0.9
+        },
+        "total": 60
+      },
+      "tool_poisoning": {
+        "leaks": {
+          "count": 0,
+          "high": 0.06017185214208986,
+          "low": 0.0,
+          "n": 60,
+          "point": 0.0
+        },
+        "success": {
+          "count": 60,
+          "high": 1.0,
+          "low": 0.93982814785791,
+          "n": 60,
+          "point": 1.0
+        },
+        "total": 60
+      }
+    },
+    "latency_ms": {
+      "count": 2000,
+      "p50": 0.09300000965595245,
+      "p95": 0.13840500614605844,
+      "p95_ci": {
+        "high": 0.145500001963228,
+        "low": 0.13129995204508305,
+        "point": 0.13840500614605844
+      },
+      "p99": 0.22608897532336406,
+      "p99_ci": {
+        "high": 0.2639000304043293,
+        "low": 0.19937000412028277,
+        "point": 0.22608897532336406
+      }
+    },
+    "metrics": {
+      "attack_policy_slices": {
+        "in_policy": {
+          "attack_traces": 250,
+          "block_rate": {
+            "count": 205,
+            "high": 0.8626665676985582,
+            "low": 0.7676481206243572,
+            "n": 250,
+            "point": 0.82
+          },
+          "leak_count": 0,
+          "leak_rate": {
+            "count": 0,
+            "high": 0.015133299495444574,
+            "low": 0.0,
+            "n": 250,
+            "point": 0.0
+          }
+        },
+        "out_of_policy": {
+          "attack_traces": 250,
+          "block_rate": {
+            "count": 250,
+            "high": 1.0,
+            "low": 0.9848667005045553,
+            "n": 250,
+            "point": 1.0
+          },
+          "leak_count": 0,
+          "leak_rate": {
+            "count": 0,
+            "high": 0.015133299495444574,
+            "low": 0.0,
+            "n": 250,
+            "point": 0.0
+          }
+        }
+      },
+      "block_rate": {
+        "count": 455,
+        "high": 0.9320574521108607,
+        "low": 0.8816905887106665,
+        "n": 500,
+        "point": 0.91
+      },
+      "false_positive_rate": {
+        "count": 80,
+        "high": 0.19470817916369146,
+        "low": 0.13047637235016407,
+        "n": 500,
+        "point": 0.16
+      },
+      "leak_count": 0,
+      "leak_rate": {
+        "count": 0,
+        "high": 0.003826758485555124,
+        "low": 0.0,
+        "n": 1000,
+        "point": 0.0
+      },
+      "wilson_n_is_distinct_traces": true
+    },
+    "settings": {
+      "provide_issued_secrets": true
+    }
+  }
+}

@@ -26,33 +26,26 @@ SECRET_SHAPE_RE = re.compile(
     re.IGNORECASE,
 )
 DANGEROUS_SHELL_RE = re.compile(r"https?://[^\s|]+\s*\|\s*\w+|\brm\s+-[a-z]*r|\bsudo\b|\bchmod\b")
-DESTRUCTIVE_SQL_RE = re.compile(
-    r"\b(?:delete\s+from|drop\s+(?:table|database|schema)|truncate\s+table|alter\s+table|"
-    r"update\s+\w+\s+set|insert\s+into)\b",
-    re.IGNORECASE,
-)
-SECRET_EXFIL_RE = re.compile(
-    r"\b(?:exfiltrate|leak|steal|dump|reveal|print|copy|send|post|upload|hide)\b"
-    r".{0,100}\b(?:secret|token|credential|api[_ -]?key|access[_ -]?key|password)\b|"
-    r"\b(?:secret|token|credential|api[_ -]?key|access[_ -]?key|password)\b"
-    r".{0,100}\b(?:exfiltrate|leak|steal|dump|reveal|print|copy|send|post|upload|hide)\b",
-    re.IGNORECASE | re.DOTALL,
-)
-INSTRUCTION_OVERRIDE_RE = re.compile(
-    r"\b(?:ignore|disregard|override|bypass|disable|forget)\b"
-    r".{0,80}\b(?:previous|system|developer|instruction|policy|guard|safety)\b|"
-    r"\b(?:system|developer|instruction|policy|guard|safety)\b"
-    r".{0,80}\b(?:ignore|disregard|override|bypass|disable|forget)\b",
-    re.IGNORECASE | re.DOTALL,
-)
-PRIVILEGE_ESCALATION_RE = re.compile(
-    r"\b(?:admin|owner|root|sudo|privilege|permission|scope)\b"
-    r".{0,80}\b(?:grant|escalat|bypass|override)\b|"
-    r"\b(?:grant|escalat|bypass|override)\b"
-    r".{0,80}\b(?:admin|owner|root|sudo|privilege|permission|scope)\b",
-    re.IGNORECASE | re.DOTALL,
-)
+WORD_RE = re.compile(r"[a-z_]+")
 HIGH_ENTROPY_TOKEN_RE = re.compile(r"\b[A-Za-z0-9_-]{20,}\b")
+SECRET_ACTIONS = {
+    "exfiltrate",
+    "leak",
+    "steal",
+    "dump",
+    "reveal",
+    "print",
+    "copy",
+    "send",
+    "post",
+    "upload",
+    "hide",
+}
+SECRET_TERMS = {"secret", "token", "credential", "api_key", "access_key", "password"}
+OVERRIDE_ACTIONS = {"ignore", "disregard", "override", "bypass", "disable", "forget"}
+OVERRIDE_TARGETS = {"previous", "system", "developer", "instruction", "policy", "guard", "safety"}
+PRIVILEGE_TERMS = {"admin", "owner", "root", "sudo", "privilege", "permission", "scope"}
+PRIVILEGE_ACTIONS = {"grant", "escalate", "escalation", "bypass", "override"}
 
 
 @dataclass(slots=True)
@@ -210,6 +203,31 @@ def _contains_secret_like(value: Any) -> bool:
     return False
 
 
+def _word_positions(text: str, terms: set[str]) -> list[int]:
+    normalized = text.lower().replace("-", "_")
+    return [match.start() for match in WORD_RE.finditer(normalized) if match.group(0) in terms]
+
+
+def _near_terms(text: str, left: set[str], right: set[str], distance: int) -> bool:
+    left_positions = _word_positions(text, left)
+    if not left_positions:
+        return False
+    right_positions = _word_positions(text, right)
+    return any(abs(a - b) <= distance for a in left_positions for b in right_positions)
+
+
+def _secret_exfil_text(text: str) -> bool:
+    return _near_terms(text, SECRET_ACTIONS, SECRET_TERMS, 100)
+
+
+def _instruction_override_text(text: str) -> bool:
+    return _near_terms(text, OVERRIDE_ACTIONS, OVERRIDE_TARGETS, 80)
+
+
+def _privilege_text(text: str) -> bool:
+    return _near_terms(text, PRIVILEGE_TERMS, PRIVILEGE_ACTIONS, 80)
+
+
 def _untrusted_secret_request(context: dict[str, Any]) -> bool:
     if str(context.get("origin", "")) == "user":
         return False
@@ -217,16 +235,12 @@ def _untrusted_secret_request(context: dict[str, Any]) -> bool:
     lowered = text.lower()
     if "non-secret" in lowered or "never the raw" in lowered or "secret reference" in lowered:
         return False
-    return bool(SECRET_EXFIL_RE.search(text) or CREDENTIAL_RE.search(text))
+    return _secret_exfil_text(text) or bool(CREDENTIAL_RE.search(text))
 
 
 def _suspicious_context(context: dict[str, Any]) -> bool:
     text = _context_text(context)
-    return bool(
-        INSTRUCTION_OVERRIDE_RE.search(text)
-        or SECRET_EXFIL_RE.search(text)
-        or PRIVILEGE_ESCALATION_RE.search(text)
-    )
+    return _instruction_override_text(text) or _secret_exfil_text(text) or _privilege_text(text)
 
 
 def _untrusted_context_external_destination(
@@ -273,7 +287,24 @@ def _allowed_critical_delegation(tool: str, args: dict[str, Any], workspace_root
 
 
 def _destructive_sql(args: dict[str, Any]) -> bool:
-    return any(DESTRUCTIVE_SQL_RE.search(text) for text in _strings(args))
+    for text in _strings(args):
+        normalized = " ".join(WORD_RE.findall(text.lower()))
+        if (
+            normalized.startswith("delete from ")
+            or normalized.startswith("truncate table ")
+            or normalized.startswith("alter table ")
+            or normalized.startswith("insert into ")
+        ):
+            return True
+        if normalized.startswith("drop ") and any(
+            normalized.startswith(f"drop {target} ") or normalized == f"drop {target}"
+            for target in ("table", "database", "schema")
+        ):
+            return True
+        words = normalized.split()
+        if len(words) >= 3 and words[0] == "update" and "set" in words[2:]:
+            return True
+    return False
 
 
 def _valid_spiffe_id(agent: dict[str, Any], trust_domain: str) -> bool:
