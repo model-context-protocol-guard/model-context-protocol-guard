@@ -1,0 +1,92 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "model-context-protocol-guard"
+version = "0.1.0"
+description = "Transparent deny-by-default security proxy for Model Context Protocol servers"
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+requires-python = ">=3.12"
+authors = [{ name = "Parag Sawant" }]
+keywords = ["mcp", "security", "ai-security", "proxy", "zero-trust"]
+classifiers = [
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Security",
+  "License :: OSI Approved :: Apache Software License",
+]
+dependencies = [
+  "jsonschema>=4.23",
+  "starlette>=0.40",
+  "uvicorn>=0.30",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3",
+  "pytest-cov>=5.0",
+  "pytest-asyncio>=0.24",
+  "hypothesis>=6.112",
+  "ruff>=0.8",
+  "mypy>=1.13",
+  "types-jsonschema>=4.23",
+  "httpx>=0.27",
+
+]
+
+[project.scripts]
+model-context-protocol-guard = "model_context_protocol_guard.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/model-context-protocol-guard/model-context-protocol-guard"
+Issues = "https://github.com/model-context-protocol-guard/model-context-protocol-guard/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/model_context_protocol_guard"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["src/model_context_protocol_guard/stats.py"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S", "SIM", "RUF"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "S105", "S106", "S603", "S607"]
+"bench/**" = ["S101", "S311", "S607", "T201", "E501"]
+"src/model_context_protocol_guard/stats.py" = ["S311", "E231", "E501", "RUF022"]
+"src/model_context_protocol_guard/transports/stdio.py" = ["S603"]
+"src/model_context_protocol_guard/pinning.py" = ["S324"]
+"src/model_context_protocol_guard/audit.py" = ["S324"]
+"src/model_context_protocol_guard/tokens.py" = ["S324"]
+"src/model_context_protocol_guard/corpus.py" = ["S311"]
+
+[tool.mypy]
+strict = true
+python_version = "3.12"
+files = ["src"]
+
+[[tool.mypy.overrides]]
+module = ["starlette.*", "uvicorn.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["zero_trust_agent_benchmark.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+markers = ["integration: needs external services (set RUN_INTEGRATION_TESTS=1)"]
+asyncio_mode = "auto"
+
+[tool.coverage.run]
+branch = true
+source = ["model_context_protocol_guard"]
+omit = ["src/model_context_protocol_guard/stats.py"]
+
+[tool.coverage.report]
+exclude_lines = ["pragma: no cover", "if __name__ == .__main__.:", "raise NotImplementedError"]

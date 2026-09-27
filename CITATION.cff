@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+title: "Model Context Protocol Guard"
+authors:
+  - family-names: Sawant
+    given-names: Parag
+version: 0.1.0
+date-released: 2026-09-25
+repository-code: https://github.com/model-context-protocol-guard/model-context-protocol-guard
+license: Apache-2.0

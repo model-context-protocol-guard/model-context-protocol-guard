@@ -1,0 +1,9 @@
+TLC verification summary for specs/PinnedTools.tla with specs/PinnedTools.cfg.
+
+Model checking completed. No error has been found.
+States generated: 18317178.
+Distinct states found: 1131966.
+States left on queue: 0.
+Depth: 25.
+Average outdegree: 1 (minimum is 0, the maximum 8 and the 95th percentile is 2).
+Finished in 22s at (2026-09-26 00:13:02).
